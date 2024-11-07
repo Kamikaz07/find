@@ -19,7 +19,11 @@ const AnunciarPage = () => {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
-    setImage(file);
+    if (file && file.type.startsWith("image/")) {
+      setImage(file);
+    } else {
+      alert("Por favor, selecione um arquivo de imagem válido.");
+    }
   };
 
   return (
@@ -78,6 +82,7 @@ const AnunciarPage = () => {
                 accept="image/*"
                 className="w-full px-3 py-2 border rounded-md"
               />
+              {image && <img src={URL.createObjectURL(image)} alt="Preview do anúncio" />}
             </div>
             <button
               type="submit"
