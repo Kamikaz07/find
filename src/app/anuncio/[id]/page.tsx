@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { useParams } from "next/navigation";  // Use useParams em vez de useRouter
-import { Header } from "../../Header/page";
-import { Footer } from "../../Footer/page";
+import { useParams } from "next/navigation"; // Use useParams em vez de useRouter
+import { Header } from "../../../components/Header";
+import { Footer } from "../../../components/Footer";
+import Image from "next/image"; // Importar o componente Image do Next.js
 
 // Tipo de anúncio e dados simulados
 type Anuncio = {
@@ -21,15 +22,17 @@ const anuncios: Anuncio[] = [
     title: "Veículo de Bombeiros Necessário",
     imageUrl: "/3.jpg",
     location: "Sintra, Portugal",
-    description: "Precisamos de um veículo de bombeiros para atender emergências na comunidade.",
-    contact: "904 248 357",  // Exemplo de contato
+    description:
+      "Precisamos de um veículo de bombeiros para atender emergências na comunidade.",
+    contact: "904 248 357", // Exemplo de contato
   },
   {
     id: 2,
     title: "Cadeira de Rodas Urgente",
     imageUrl: "/2.jpg",
     location: "Lisboa, Portugal",
-    description: "Uma cadeira de rodas é necessária para um idoso da comunidade.",
+    description:
+      "Uma cadeira de rodas é necessária para um idoso da comunidade.",
     contact: "904 248 357",
   },
   {
@@ -43,7 +46,7 @@ const anuncios: Anuncio[] = [
 ];
 
 export default function ProductPage() {
-  const { id } = useParams();  // Use useParams para obter o 'id'
+  const { id } = useParams(); // Use useParams para obter o 'id'
   const [showContact, setShowContact] = useState(false); // Estado para controlar exibição do contato
 
   // Converte o id para número e encontra o anúncio correspondente
@@ -68,10 +71,12 @@ export default function ProductPage() {
         <div className="grid md:grid-cols-2 gap-8 p-4 bg-white rounded-lg shadow-lg">
           {/* Image Section */}
           <div>
-            <img
+            <Image
               src={anuncio.imageUrl}
               alt={anuncio.title}
               className="w-full h-auto rounded-lg shadow-md"
+              width={500}
+              height={300}
             />
           </div>
 
@@ -79,7 +84,9 @@ export default function ProductPage() {
           <div className="space-y-6">
             <div>
               <h2 className="text-3xl font-bold">{anuncio.title}</h2>
-              <p className="text-2xl font-semibold text-teal-700 mt-2">{anuncio.location}</p>
+              <p className="text-2xl font-semibold text-teal-700 mt-2">
+                {anuncio.location}
+              </p>
             </div>
             <div className="flex items-center space-x-2 text-gray-600">
               <svg
@@ -117,7 +124,9 @@ export default function ProductPage() {
             </Card>
 
             {/* Botão para mostrar contato */}
-            <Button onClick={() => setShowContact(!showContact)}>Contactar Anunciante</Button>
+            <Button onClick={() => setShowContact(!showContact)}>
+              Contactar Anunciante
+            </Button>
 
             {/* Exibir contato se o botão for clicado */}
             {showContact && (
@@ -142,7 +151,10 @@ export default function ProductPage() {
 }
 
 // Componente de Botão Personalizado
-function Button({ children, onClick }: { children: React.ReactNode, onClick: () => void }) {
+function Button({
+  children,
+  onClick,
+}: Readonly<{ children: React.ReactNode; onClick: () => void }>) {
   return (
     <button
       onClick={onClick}
@@ -154,13 +166,13 @@ function Button({ children, onClick }: { children: React.ReactNode, onClick: () 
 }
 
 // Componente de Cartão Personalizado
-function Card({ children }: { children: React.ReactNode }) {
+function Card({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className="bg-[#E0F4F4] rounded-lg shadow-md p-4">{children}</div>
   );
 }
 
 // Componente de Conteúdo de Cartão Personalizado
-function CardContent({ children }: { children: React.ReactNode }) {
+function CardContent({ children }: Readonly<{ children: React.ReactNode }>) {
   return <div className="p-4">{children}</div>;
 }

@@ -1,10 +1,11 @@
 import React from 'react';
+import Image from 'next/image';
 
 const IndexPage = () => {
   return (
     <div className="min-h-screen flex flex-col items-center bg-[#40B3B3]">
       <header className="text-center py-10">
-        <img src="/logo.jpg" alt="Logo FIND" className="w-32 h-32 mx-auto" />
+        <Image src="/logo.jpg" alt="Logo FIND" width={128} height={128} className="mx-auto" />
         <h1 className="text-4xl font-bold text-white mt-4">Bem-vindo ao FIND</h1>
         <p className="text-lg text-white mt-2">
           Encontre ajuda ou ofereça suporte a quem precisa.

@@ -1,7 +1,8 @@
-import React from 'react';
-import Link from 'next/link';
-import { Header } from '../Header/page';
-import { Footer } from '../Footer/page';
+import React from "react";
+import Link from "next/link";
+import { Header } from "../../components/Header";
+import { Footer } from "../../components/Footer";
+import Image from "next/image";
 
 type Anuncio = {
   id: number;
@@ -14,24 +15,26 @@ type Anuncio = {
 const anuncios: Anuncio[] = [
   {
     id: 1,
-    title: 'Veículo de Bombeiros Necessário',
-    imageUrl: '/3.jpg',
-    location: 'Sintra, Portugal',
-    description: 'Precisamos de um veículo de bombeiros para atender emergências na comunidade.',
+    title: "Veículo de Bombeiros Necessário",
+    imageUrl: "/3.jpg",
+    location: "Sintra, Portugal",
+    description:
+      "Precisamos de um veículo de bombeiros para atender emergências na comunidade.",
   },
   {
     id: 2,
-    title: 'Cadeira de Rodas Urgente',
-    imageUrl: '/2.jpg',
-    location: 'Lisboa, Portugal',
-    description: 'Uma cadeira de rodas é necessária para um idoso da comunidade.',
+    title: "Cadeira de Rodas Urgente",
+    imageUrl: "/2.jpg",
+    location: "Lisboa, Portugal",
+    description:
+      "Uma cadeira de rodas é necessária para um idoso da comunidade.",
   },
   {
     id: 3,
-    title: 'Tampinhas Plásticas para Doação',
-    imageUrl: '/1.jpg',
-    location: 'Porto, Portugal',
-    description: 'Precisamos de tampinhas plásticas para campanha de doação.',
+    title: "Tampinhas Plásticas para Doação",
+    imageUrl: "/1.jpg",
+    location: "Porto, Portugal",
+    description: "Precisamos de tampinhas plásticas para campanha de doação.",
   },
 ];
 
@@ -66,13 +69,29 @@ const AnunciosPage: React.FC = () => {
         {/* Lista de Anúncios */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {anuncios.map((anuncio) => (
-            <Link key={anuncio.id} href={`/anuncio/${anuncio.id}`} className="block">
+            <Link
+              key={anuncio.id}
+              href={`/anuncio/${anuncio.id}`}
+              className="block"
+            >
               <div className="bg-[#B2E4E4] rounded-lg shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
-                <img src={anuncio.imageUrl} alt={anuncio.title} className="w-full h-48 object-cover" />
+                <Image
+                  src={anuncio.imageUrl}
+                  alt={anuncio.title}
+                  width={500}
+                  height={200}
+                  className="w-full h-48 object-cover"
+                />
                 <div className="p-4">
-                  <h3 className="text-xl font-bold text-center text-teal-800">{anuncio.title}</h3>
-                  <p className="text-center text-gray-600">{anuncio.location}</p>
-                  <p className="text-gray-700 mt-3 line-clamp-2 text-center">{anuncio.description}</p>
+                  <h3 className="text-xl font-bold text-center text-teal-800">
+                    {anuncio.title}
+                  </h3>
+                  <p className="text-center text-gray-600">
+                    {anuncio.location}
+                  </p>
+                  <p className="text-gray-700 mt-3 line-clamp-2 text-center">
+                    {anuncio.description}
+                  </p>
                 </div>
               </div>
             </Link>
