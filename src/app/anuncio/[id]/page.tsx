@@ -1,36 +1,35 @@
 "use client";
 
 import React, { useState } from "react";
-import { useParams } from "next/navigation"; // Use useParams em vez de useRouter
+import { useParams, useRouter } from "next/navigation";
 import { Header } from "../../../components/Header";
 import { Footer } from "../../../components/Footer";
-import Image from "next/image"; // Importar o componente Image do Next.js
+import Image from "next/image";
 
-// Tipo de anúncio e dados simulados
 type Anuncio = {
   id: number;
   title: string;
   imageUrl: string;
   location: string;
   description: string;
-  contact: string; // Novo campo para o contato
+  contact: string;
 };
 
 const anuncios: Anuncio[] = [
   {
     id: 1,
-    title: "Veículo de Bombeiros Necessário",
+    title: "Bens necessários para os Bombeiros",
     imageUrl: "/3.jpg",
     location: "Sintra, Portugal",
     description:
-      "Precisamos de um veículo de bombeiros para atender emergências na comunidade.",
-    contact: "904 248 357", // Exemplo de contato
+      "Precisamos de bens para atender as emergências da comunidade.",
+    contact: "904 248 357",
   },
   {
     id: 2,
     title: "Cadeira de Rodas Urgente",
     imageUrl: "/2.jpg",
-    location: "Lisboa, Portugal",
+    location: "Porto, Portugal",
     description:
       "Uma cadeira de rodas é necessária para um idoso da comunidade.",
     contact: "904 248 357",
@@ -39,20 +38,19 @@ const anuncios: Anuncio[] = [
     id: 3,
     title: "Tampinhas Plásticas para Doação",
     imageUrl: "/1.jpg",
-    location: "Porto, Portugal",
+    location: "Lisboa, Portugal",
     description: "Precisamos de tampinhas plásticas para campanha de doação.",
     contact: "904 248 357",
   },
 ];
 
 export default function ProductPage() {
-  const { id } = useParams(); // Use useParams para obter o 'id'
-  const [showContact, setShowContact] = useState(false); // Estado para controlar exibição do contato
+  const router = useRouter();
+  const { id } = useParams();
+  const [showContact, setShowContact] = useState(false);
 
-  // Converte o id para número e encontra o anúncio correspondente
   const anuncio = anuncios.find((anuncio) => anuncio.id === Number(id));
 
-  // Verifica se o anúncio existe
   if (!anuncio) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -61,15 +59,18 @@ export default function ProductPage() {
     );
   }
 
+  const handlePromote = () => {
+    router.push(
+      `/pagamento?title=${encodeURIComponent(anuncio.title)}&imageUrl=${encodeURIComponent(anuncio.imageUrl)}`
+    );
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#E0F4F4]">
-      {/* Header */}
       <Header />
 
-      {/* Main Content */}
       <main className="flex-grow container mx-auto p-4">
         <div className="grid md:grid-cols-2 gap-8 p-4 bg-white rounded-lg shadow-lg">
-          {/* Image Section */}
           <div>
             <Image
               src={anuncio.imageUrl}
@@ -80,7 +81,6 @@ export default function ProductPage() {
             />
           </div>
 
-          {/* Anúncio Information Section */}
           <div className="space-y-6">
             <div>
               <h2 className="text-3xl font-bold">{anuncio.title}</h2>
@@ -123,10 +123,15 @@ export default function ProductPage() {
               </CardContent>
             </Card>
 
-            {/* Botão para mostrar contato */}
-            <Button onClick={() => setShowContact(!showContact)}>
-              Contactar Anunciante
-            </Button>
+            {/* Botões lado a lado */}
+            <div className="flex space-x-4">
+              <Button onClick={() => setShowContact(!showContact)}>
+                Contactar Anunciante
+              </Button>
+              <Button onClick={handlePromote}>
+                Promover
+              </Button>
+            </div>
 
             {/* Exibir contato se o botão for clicado */}
             {showContact && (
@@ -144,13 +149,11 @@ export default function ProductPage() {
         </div>
       </main>
 
-      {/* Footer */}
       <Footer />
     </div>
   );
 }
 
-// Componente de Botão Personalizado
 function Button({
   children,
   onClick,
@@ -165,14 +168,12 @@ function Button({
   );
 }
 
-// Componente de Cartão Personalizado
 function Card({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className="bg-[#E0F4F4] rounded-lg shadow-md p-4">{children}</div>
   );
 }
 
-// Componente de Conteúdo de Cartão Personalizado
 function CardContent({ children }: Readonly<{ children: React.ReactNode }>) {
   return <div className="p-4">{children}</div>;
 }

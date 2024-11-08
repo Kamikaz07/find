@@ -15,17 +15,17 @@ type Anuncio = {
 const anuncios: Anuncio[] = [
   {
     id: 1,
-    title: "Veículo de Bombeiros Necessário",
+    title: "Bens necessários para os Bombeiros",
     imageUrl: "/3.jpg",
     location: "Sintra, Portugal",
     description:
-      "Precisamos de um veículo de bombeiros para atender emergências na comunidade.",
+      "Precisamos de bens para atender as emergências da comunidade.",
   },
   {
     id: 2,
     title: "Cadeira de Rodas Urgente",
     imageUrl: "/2.jpg",
-    location: "Lisboa, Portugal",
+    location: "Porto, Portugal",
     description:
       "Uma cadeira de rodas é necessária para um idoso da comunidade.",
   },
@@ -33,7 +33,7 @@ const anuncios: Anuncio[] = [
     id: 3,
     title: "Tampinhas Plásticas para Doação",
     imageUrl: "/1.jpg",
-    location: "Porto, Portugal",
+    location: "Lisboa, Portugal",
     description: "Precisamos de tampinhas plásticas para campanha de doação.",
   },
 ];
