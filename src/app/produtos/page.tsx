@@ -4,41 +4,43 @@ import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import Image from "next/image";
 
-type Anuncio = {
+type Produto = {
   id: number;
   title: string;
   imageUrl: string;
   location: string;
   description: string;
+  price: number;
 };
 
-const anuncios: Anuncio[] = [
+const produtos: Produto[] = [
   {
     id: 1,
-    title: "Bens necessários para os Bombeiros",
-    imageUrl: "/3.jpg",
-    location: "Sintra, Portugal",
-    description:
-      "Precisamos de bens para atender as emergências da comunidade.",
+    title: "Mesa de jantar em madeira",
+    imageUrl: "/produto1.jpg",
+    location: "Lisboa, Portugal",
+    description: "Mesa clássica em ótimo estado. Ideal para 6 pessoas.",
+    price: 150.0,
   },
   {
     id: 2,
-    title: "Cadeira de Rodas Urgente",
-    imageUrl: "/2.jpg",
+    title: "Bicicleta urbana",
+    imageUrl: "/produto2.jpg",
     location: "Porto, Portugal",
-    description:
-      "Uma cadeira de rodas é necessária para um idoso da comunidade.",
+    description: "Bicicleta leve e confortável para o dia a dia na cidade.",
+    price: 220.5,
   },
   {
     id: 3,
-    title: "Tampinhas Plásticas para Doação",
-    imageUrl: "/1.jpg",
-    location: "Lisboa, Portugal",
-    description: "Precisamos de tampinhas plásticas para campanha de doação.",
+    title: "Sofá 3 lugares cinza",
+    imageUrl: "/produto3.jpg",
+    location: "Coimbra, Portugal",
+    description: "Sofá espaçoso e confortável, pouco usado.",
+    price: 300,
   },
 ];
 
-const AnunciosPage: React.FC = () => {
+const MercadoPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#E0F4F4] flex flex-col">
       <Header />
@@ -48,7 +50,7 @@ const AnunciosPage: React.FC = () => {
           <div className="relative w-full max-w-2xl">
             <input
               type="text"
-              placeholder="Buscar anúncios..."
+              placeholder="Buscar produtos..."
               className="pl-10 pr-10 h-12 bg-white rounded-lg w-full border focus:border-blue-500"
             />
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
@@ -64,37 +66,38 @@ const AnunciosPage: React.FC = () => {
             </div>
           </div>
 
-          <Link href="/anunciar">
+          <Link href="/vender">
             <span className="bg-[#40B3B3] hover:bg-[#329999] text-white font-semibold py-2 px-4 rounded text-sm transition-colors whitespace-nowrap">
-              Criar Anúncio
+              Vender Produto
             </span>
           </Link>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {anuncios.map((anuncio) => (
+          {produtos.map((produto) => (
             <Link
-              key={anuncio.id}
-              href={`/anuncio/${anuncio.id}`}
+              key={produto.id}
+              href={`/produto/${produto.id}`}
               className="block"
             >
               <div className="bg-[#B2E4E4] rounded-lg shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
                 <Image
-                  src={anuncio.imageUrl}
-                  alt={anuncio.title}
+                  src={produto.imageUrl}
+                  alt={produto.title}
                   width={500}
                   height={200}
                   className="w-full h-48 object-cover"
                 />
-                <div className="p-4">
-                  <h3 className="text-xl font-bold text-center text-teal-800">
-                    {anuncio.title}
+                <div className="p-4 text-center">
+                  <h3 className="text-xl font-bold text-teal-800">
+                    {produto.title}
                   </h3>
-                  <p className="text-center text-gray-600">
-                    {anuncio.location}
+                  <p className="text-green-700 font-semibold mt-1">
+                    € {produto.price.toFixed(2)}
                   </p>
-                  <p className="text-gray-700 mt-3 line-clamp-2 text-center">
-                    {anuncio.description}
+                  <p className="text-gray-600">{produto.location}</p>
+                  <p className="text-gray-700 mt-3 line-clamp-2">
+                    {produto.description}
                   </p>
                 </div>
               </div>
@@ -108,4 +111,4 @@ const AnunciosPage: React.FC = () => {
   );
 };
 
-export default AnunciosPage;
+export default MercadoPage;
