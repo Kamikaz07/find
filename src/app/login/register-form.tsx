@@ -104,7 +104,7 @@ export default function RegisterForm() {
         {loading ? 'A processar...' : 'Criar conta'}
       </button>
       <p className="text-xs text-gray-500 mt-2">
-        Ao clicar em "Criar conta", aceitas os <a className="underline" href="#">Termos e Condições</a> e a <a className="underline" href="#">Política de Privacidade</a>.
+        Ao clicar em &quot;Criar conta&quot;, aceitas os <a className="underline" href="#">Termos e Condições</a> e a <a className="underline" href="#">Política de Privacidade</a>.
       </p>
     </form>
   );
