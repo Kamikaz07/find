@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient(cookieStore);
 
     // Check if user already exists
     const { data: existingUser, error: checkError } = await supabase
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       success: true,
       user: { id: newUser.id, email: newUser.email },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Registration error:', error);
     return NextResponse.json(
       { error: 'Ocorreu um erro ao registar' },

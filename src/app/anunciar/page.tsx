@@ -4,11 +4,8 @@ import React from "react";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import Image from "next/image";
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { useEffect,useState } from "react";
-
+import { useEffect, useState } from "react";
 
 const AnunciarPage = () => {
   const [title, setTitle] = useState("");

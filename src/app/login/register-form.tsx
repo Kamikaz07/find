@@ -49,8 +49,8 @@ export default function RegisterForm() {
       } else {
         router.push('/anunciar');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao registar');
     } finally {
       setLoading(false);
     }
