@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const AnunciarPage = () => {
   const [title, setTitle] = useState("");
@@ -11,6 +13,18 @@ const AnunciarPage = () => {
   const [publisher, setPublisher] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState<File | null>(null);
+
+  const router = useRouter();
+  useEffect(() => {
+    const checkAuth = async () => {
+      const res = await fetch("/api/auth/session");
+      const session = await res.json();
+      if (!session?.user) {
+        router.push("/login");
+      }
+    };
+    checkAuth();
+  }, [router]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
