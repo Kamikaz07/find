@@ -4,7 +4,6 @@ import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
-import bcrypt from "bcrypt";
 
 export const auth = NextAuth({
   providers: [
@@ -15,34 +14,26 @@ export const auth = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email) {
-          throw new Error("Missing credentials email");
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Missing credentials");
         }
 
         const cookieStore = cookies();
         const supabase = await createClient(cookieStore);
 
-        const { data: users, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('email', credentials.email)
-          .single();
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: credentials.email,
+          password: credentials.password,
+        });
 
-        if (error || !users) {
-          throw new Error("Invalid credentials");
-        }
-        
-        // Compare passwords using bcrypt
-        const passwordMatch = await bcrypt.compare(
-          credentials.password as string,
-          users.password
-        );
-
-        if (!passwordMatch) {
+        if (error || !data.user) {
           throw new Error("Invalid credentials");
         }
 
-        return { id: users.id, email: users.email };
+        return {
+          id: data.user.id,
+          email: data.user.email,
+        };
       },
     }),
   ],
