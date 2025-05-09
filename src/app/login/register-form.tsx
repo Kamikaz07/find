@@ -34,6 +34,11 @@ export default function RegisterForm() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 429) {
+          // Add a delay before allowing another attempt
+          setTimeout(() => setLoading(false), 30000); // 30 seconds
+          throw new Error('Por favor, aguarde alguns segundos antes de tentar novamente.');
+        }
         throw new Error(data.error || 'Ocorreu um erro ao registar');
       }
 
@@ -51,7 +56,6 @@ export default function RegisterForm() {
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Ocorreu um erro ao registar');
-    } finally {
       setLoading(false);
     }
   };
