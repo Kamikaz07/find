@@ -21,7 +21,7 @@ export const Header: React.FC = () => {
           <Link href="/" className="hover:text-gray-300 transition-colors">Início</Link>
           <Link href="/sobre" className="hover:text-gray-300 transition-colors">Sobre Nós</Link>
           <Link href="/anuncios" className="hover:text-gray-300 transition-colors">Anúncios</Link>
-          <Link href="/produtos" className="hover:text-gray-300 transition-colors">Mercado</Link>
+          <Link href="/mercado" className="hover:text-gray-300 transition-colors">Mercado</Link>
 
           {/* A Minha Conta com dropdown */}
           <div
@@ -40,11 +40,10 @@ export const Header: React.FC = () => {
             >
               {session ? (
                 <>
+                <a href='/conta'>
                   <p className="font-bold mb-2">{userName}</p>
+                  </a>
                   <ul className="space-y-1 text-sm">
-                    <li><Link href="/anuncios" className="block hover:text-[#40B3B3]">Meus Anúncios</Link></li>
-                    <li><Link href="/contacto" className="block hover:text-[#40B3B3]">Contactos</Link></li>
-                    <li><Link href="/dados" className="block hover:text-[#40B3B3]">Perfil</Link></li>
                     <hr className="my-2" />
                     <li>
                       <button

@@ -18,6 +18,7 @@ export default function RegisterForm() {
     const form = new FormData(e.currentTarget);
     const email = form.get('email') as string;
     const password = form.get('password') as string;
+    const phone = form.get('phone') as string;
 
     try {
       // Register the user
@@ -27,6 +28,7 @@ export default function RegisterForm() {
         body: JSON.stringify({ 
           email, 
           password,
+          phone,
           receiveUpdates 
         }),
       });
@@ -70,6 +72,15 @@ export default function RegisterForm() {
           name="email" 
           id="email"
           required 
+          className="mt-1 w-full rounded-md border px-3 py-2 text-sm" 
+        />
+      </div>
+      <div>
+        <label htmlFor="phone" className="block text-sm font-medium text-teal-700">Telemóvel</label>
+        <input 
+          type="tel" 
+          name="phone" 
+          id="phone"
           className="mt-1 w-full rounded-md border px-3 py-2 text-sm" 
         />
       </div>

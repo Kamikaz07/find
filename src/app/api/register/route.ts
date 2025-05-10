@@ -8,7 +8,7 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{9,}$/;
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, receiveUpdates } = await request.json();
+    const { email, password, phone, receiveUpdates } = await request.json();
 
     // Validate inputs
     if (!email || !password) {
@@ -57,10 +57,11 @@ export async function POST(request: NextRequest) {
         {
           email,
           password: hashedPassword,
+          phone,
           receive_updates: !!receiveUpdates
         }
       ])
-      .select('id, email')
+      .select('id, email, phone')
       .single();
 
     if (insertError) {
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      user: { id: newUser.id, email: newUser.email },
+      user: { id: newUser.id, email: newUser.email, phone: newUser.phone },
     });
   } catch (error: unknown) {
     console.error('Registration error:', error);
@@ -78,4 +79,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

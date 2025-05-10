@@ -1,57 +1,105 @@
-import React from "react";
+'use client';
+
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import Image from "next/image";
 
 type Produto = {
-  id: number;
+  id: string;
   title: string;
-  imageUrl: string;
+  image_url: string;
   location: string;
   description: string;
   price: number;
+  created_at: string;
 };
 
-const produtos: Produto[] = [
-  {
-    id: 1,
-    title: "Mesa de jantar em madeira",
-    imageUrl: "/produto1.jpg",
-    location: "Lisboa, Portugal",
-    description: "Mesa clássica em ótimo estado. Ideal para 6 pessoas.",
-    price: 150.0,
-  },
-  {
-    id: 2,
-    title: "Bicicleta urbana",
-    imageUrl: "/produto2.jpg",
-    location: "Porto, Portugal",
-    description: "Bicicleta leve e confortável para o dia a dia na cidade.",
-    price: 220.5,
-  },
-  {
-    id: 3,
-    title: "Sofá 3 lugares cinza",
-    imageUrl: "/produto3.jpg",
-    location: "Coimbra, Portugal",
-    description: "Sofá espaçoso e confortável, pouco usado.",
-    price: 300,
-  },
-];
+const ProdutosPage: React.FC = () => {
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-const MercadoPage: React.FC = () => {
+  // Fetch products
+  useEffect(() => {
+    const fetchProdutos = async () => {
+      try {
+        setIsLoading(true);
+        // For now, we'll use static data since we don't have a products API endpoint
+        // In a real implementation, this would fetch from an API
+        const mockProdutos: Produto[] = [
+          {
+            id: "1",
+            title: "Mesa de jantar em madeira",
+            image_url: "/produto1.jpg",
+            location: "Lisboa, Portugal",
+            description: "Mesa clássica em ótimo estado. Ideal para 6 pessoas.",
+            price: 150.0,
+            created_at: new Date().toISOString()
+          },
+          {
+            id: "2",
+            title: "Bicicleta urbana",
+            image_url: "/produto2.jpg",
+            location: "Porto, Portugal",
+            description: "Bicicleta leve e confortável para o dia a dia na cidade.",
+            price: 220.5,
+            created_at: new Date().toISOString()
+          },
+          {
+            id: "3",
+            title: "Sofá 3 lugares cinza",
+            image_url: "/produto3.jpg",
+            location: "Coimbra, Portugal",
+            description: "Sofá espaçoso e confortável, pouco usado.",
+            price: 300,
+            created_at: new Date().toISOString()
+          },
+        ];
+
+        // Filter by search term if provided
+        const filtered = searchTerm 
+          ? mockProdutos.filter(p => 
+              p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              p.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              p.location.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+          : mockProdutos;
+
+        setProdutos(filtered);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products. Please try again later.');
+        setProdutos([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProdutos();
+  }, [searchTerm]);
+
+  // Handle search
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    // The search is already triggered by the useEffect dependency on searchTerm
+  };
   return (
     <div className="min-h-screen bg-[#E0F4F4] flex flex-col">
       <Header />
 
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="flex justify-center items-center gap-4 mb-12">
-          <div className="relative w-full max-w-2xl">
+          <form onSubmit={handleSearch} className="relative w-full max-w-2xl">
             <input
               type="text"
               placeholder="Buscar produtos..."
               className="pl-10 pr-10 h-12 bg-white rounded-lg w-full border focus:border-blue-500"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
               <svg
@@ -64,7 +112,10 @@ const MercadoPage: React.FC = () => {
                 <path d="M21 21l-4.35-4.35M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"></path>
               </svg>
             </div>
-          </div>
+            <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+              <span className="sr-only">Search</span>
+            </button>
+          </form>
 
           <Link href="/vender">
             <span className="bg-[#40B3B3] hover:bg-[#329999] text-white font-semibold py-2 px-4 rounded text-sm transition-colors whitespace-nowrap">
@@ -73,37 +124,59 @@ const MercadoPage: React.FC = () => {
           </Link>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {produtos.map((produto) => (
-            <Link
-              key={produto.id}
-              href={`/produto/${produto.id}`}
-              className="block"
-            >
-              <div className="bg-[#B2E4E4] rounded-lg shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
-                <Image
-                  src={produto.imageUrl}
-                  alt={produto.title}
-                  width={500}
-                  height={200}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-4 text-center">
-                  <h3 className="text-xl font-bold text-teal-800">
-                    {produto.title}
-                  </h3>
-                  <p className="text-green-700 font-semibold mt-1">
-                    € {produto.price.toFixed(2)}
-                  </p>
-                  <p className="text-gray-600">{produto.location}</p>
-                  <p className="text-gray-700 mt-3 line-clamp-2">
-                    {produto.description}
-                  </p>
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+          </div>
+        ) : error ? (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <span className="block sm:inline">{error}</span>
+          </div>
+        ) : produtos.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg">Nenhum produto encontrado.</p>
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="mt-4 text-teal-600 hover:text-teal-800"
+              >
+                Limpar pesquisa
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {produtos.map((produto) => (
+              <Link
+                key={produto.id}
+                href={`/produto/${produto.id}`}
+                className="block"
+              >
+                <div className="bg-[#B2E4E4] rounded-lg shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
+                  <Image
+                    src={produto.image_url || '/placeholder.jpg'}
+                    alt={produto.title}
+                    width={500}
+                    height={200}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="p-4 text-center">
+                    <h3 className="text-xl font-bold text-teal-800">
+                      {produto.title}
+                    </h3>
+                    <p className="text-green-700 font-semibold mt-1">
+                      € {produto.price.toFixed(2)}
+                    </p>
+                    <p className="text-gray-600">{produto.location}</p>
+                    <p className="text-gray-700 mt-3 line-clamp-2">
+                      {produto.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </main>
 
       <Footer />
@@ -111,4 +184,4 @@ const MercadoPage: React.FC = () => {
   );
 };
 
-export default MercadoPage;
+export default ProdutosPage;

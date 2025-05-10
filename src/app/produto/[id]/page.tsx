@@ -1,73 +1,200 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Header } from "../../../components/Header";
 import { Footer } from "../../../components/Footer";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
+import Swal from 'sweetalert2';
 
-type Produto = {
-  id: number;
+type Product = {
+  id: string;
   title: string;
-  imageUrl: string;
+  image_url: string;
+  price: number;
   location: string;
   description: string;
-  contact: string;
-  price: number;
+  publisher: string;
+  created_at: string;
+  contact?: string;
+  contact_email?: string;
+  user_id?: string;
 };
 
-const produtos: Produto[] = [
-  {
-    id: 1,
-    title: "Mesa de jantar em madeira",
-    imageUrl: "/produto1.jpg",
-    location: "Lisboa, Portugal",
-    description: "Mesa clássica em ótimo estado. Ideal para 6 pessoas.",
-    contact: "912 345 678",
-    price: 150.0,
-  },
-  {
-    id: 2,
-    title: "Bicicleta urbana",
-    imageUrl: "/produto2.jpg",
-    location: "Porto, Portugal",
-    description: "Bicicleta leve e confortável para o dia a dia na cidade.",
-    contact: "913 246 579",
-    price: 220.5,
-  },
-  {
-    id: 3,
-    title: "Sofá 3 lugares cinza",
-    imageUrl: "/produto3.jpg",
-    location: "Coimbra, Portugal",
-    description: "Sofá espaçoso e confortável, pouco usado.",
-    contact: "917 333 111",
-    price: 300,
-  },
-];
+type ChatMessage = {
+  id: string;
+  message: string;
+  sender: string;
+  timestamp: Date;
+};
 
-export default function ProdutoPage() {
+export default function ProductPage() {
   const router = useRouter();
   const { id } = useParams();
+  const { data: session } = useSession();
   const [showContact, setShowContact] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
 
-  const produto = produtos.find((p) => p.id === Number(id));
+  // Format price as currency
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('pt-PT', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(price);
+  };
 
-  if (!produto) {
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/products/${id}`);
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch product');
+        }
+
+        const data = await response.json();
+        setProduct(data.product);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching product:', err);
+        setError('Failed to load product. Please try again later.');
+        setProduct(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchProduct();
+    }
+  }, [id]);
+
+  // Initialize empty messages array for chat
+  const initializeChat = () => {
+    setChatMessages([]);
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !session || !product?.user_id) return;
+    
+    try {
+      setSendingMessage(true);
+      
+      // Send the message via the API
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          receiverId: product.user_id,
+          message: newMessage.trim(),
+          productId: product.id
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      const data = await response.json();
+      
+      // Add the new message to the chat
+      setChatMessages(prevMessages => [
+        ...prevMessages,
+        {
+          id: data.message.id,
+          message: data.message.message,
+          sender: 'you',
+          timestamp: new Date(data.message.created_at)
+        }
+      ]);
+      
+      // Clear the message input
+      setNewMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      Swal.fire({
+        title: 'Erro',
+        text: 'Erro ao enviar mensagem. Tente novamente.',
+        icon: 'error',
+        confirmButtonColor: '#40B3B3'
+      });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const toggleContact = () => {
+    setShowContact(!showContact);
+    setShowChat(false);
+  };
+
+  const toggleChat = () => {
+    if (!session) {
+      Swal.fire({
+        title: 'Autenticação Necessária',
+        text: 'Precisa fazer login para contactar o vendedor.',
+        icon: 'info',
+        confirmButtonColor: '#40B3B3',
+        showCancelButton: true,
+        confirmButtonText: 'Fazer Login',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.push('/login');
+        }
+      });
+      return;
+    }
+    
+    if (!showChat) {
+      initializeChat();
+    }
+    setShowChat(!showChat);
+    setShowContact(false);
+  };
+
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Produto não encontrado</p>
+      <div className="min-h-screen flex flex-col bg-[#E0F4F4]">
+        <Header />
+        <div className="flex-grow flex justify-center items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+        </div>
+        <Footer />
       </div>
     );
   }
 
-  const handlePromote = () => {
-    router.push(
-      `/pagamento?title=${encodeURIComponent(produto.title)}&imageUrl=${encodeURIComponent(
-        produto.imageUrl
-      )}`
+  if (error || !product) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#E0F4F4]">
+        <Header />
+        <div className="flex-grow flex justify-center items-center">
+          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+            <p className="text-xl text-red-600 mb-4">Produto não encontrado</p>
+            <p className="text-gray-600">{error || "O produto solicitado não está disponível."}</p>
+            <button 
+              onClick={() => router.push('/mercado')}
+              className="mt-6 bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600 transition"
+            >
+              Ver todos os produtos
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
     );
-  };
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#E0F4F4]">
@@ -77,8 +204,8 @@ export default function ProdutoPage() {
         <div className="grid md:grid-cols-2 gap-8 p-4 bg-white rounded-lg shadow-lg">
           <div>
             <Image
-              src={produto.imageUrl}
-              alt={produto.title}
+              src={product.image_url || '/placeholder.jpg'}
+              alt={product.title}
               className="w-full h-auto rounded-lg shadow-md"
               width={500}
               height={300}
@@ -87,15 +214,27 @@ export default function ProdutoPage() {
 
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold">{produto.title}</h2>
-              <p className="text-xl font-semibold text-green-700 mt-1">
-                € {produto.price.toFixed(2)}
+              <h2 className="text-3xl font-bold">{product.title}</h2>
+              <p className="text-3xl font-bold text-teal-600 mt-2">
+                {formatPrice(product.price)}
               </p>
-              <p className="text-md font-medium text-teal-700">
-                {produto.location}
+              <p className="text-xl font-semibold text-teal-700 mt-2">
+                {product.location}
               </p>
             </div>
-
+            <div className="flex items-center space-x-2 text-gray-600">
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M21 10.45a8.38 8.38 0 0 1-1.69 5.72L12 21 4.69 16.17A8.5 8.5 0 1 1 21 10.45z"></path>
+              </svg>
+              <span>{product.location}</span>
+            </div>
             <Card>
               <CardContent>
                 <div className="flex items-center space-x-4">
@@ -111,30 +250,100 @@ export default function ProdutoPage() {
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
                   <div>
-                    <h3 className="font-semibold">Publicado por FIND</h3>
-                    <p className="text-sm text-gray-500">Vendedor</p>
+                    <h3 className="font-semibold">Vendido por {product.publisher}</h3>
+                    <p className="text-sm text-gray-500">
+                      {new Date(product.created_at).toLocaleDateString()}
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Contact and chat buttons */}
             <div className="flex space-x-4">
-              <Button onClick={() => setShowContact(!showContact)}>
-                Contactar Vendedor
-              </Button>
-              <Button onClick={handlePromote}>Promover</Button>
+              <div className="flex-1 space-y-2">
+                <Button onClick={toggleContact}>
+                  Ver Contacto
+                </Button>
+                <Button onClick={toggleChat}>
+                  Chat com Vendedor
+                </Button>
+              </div>
             </div>
 
+            {/* Contact information */}
             {showContact && (
               <div className="mt-4 p-4 bg-gray-100 rounded-md shadow-md">
-                <h3 className="text-lg font-semibold">Contato:</h3>
-                <p className="text-gray-700">{produto.contact}</p>
+                <h3 className="text-lg font-semibold mb-2">Informação de Contacto:</h3>
+                {product.contact ? (
+                  <div>
+                    <p className="flex items-center text-gray-700 mb-2">
+                      <svg className="w-5 h-5 mr-2 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                      </svg>
+                      <span>Telefone: {product.contact}</span>
+                    </p>
+                    {product.contact_email && (
+                      <p className="flex items-center text-gray-700">
+                        <svg className="w-5 h-5 mr-2 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                        </svg>
+                        <span>Email: {product.contact_email}</span>
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-gray-700">Contacto não disponível</p>
+                )}
+              </div>
+            )}
+
+            {/* Chat interface */}
+            {showChat && (
+              <div className="mt-4 p-4 bg-gray-100 rounded-md shadow-md">
+                <h3 className="text-lg font-semibold mb-2">Chat com {product.publisher}</h3>
+                <div className="h-64 overflow-y-auto bg-white p-3 rounded mb-3">
+                  {chatMessages.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-gray-500">
+                      <p>Comece a conversação com o vendedor</p>
+                    </div>
+                  ) : (
+                    chatMessages.map(msg => (
+                      <div key={msg.id} className={`mb-3 ${msg.sender === 'you' ? 'text-right' : 'text-left'}`}>
+                        <div className={`inline-block p-2 rounded-lg ${msg.sender === 'you' ? 'bg-teal-100' : 'bg-gray-200'}`}>
+                          <p className="text-sm">{msg.message}</p>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {msg.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <div className="flex">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && !sendingMessage && handleSendMessage()}
+                    placeholder="Escreva uma mensagem..."
+                    className="flex-1 border rounded-l-md p-2"
+                    disabled={sendingMessage}
+                  />
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={!newMessage.trim() || sendingMessage}
+                    className="bg-teal-500 text-white px-4 py-2 rounded-r-md hover:bg-teal-600 transition disabled:bg-gray-300"
+                  >
+                    {sendingMessage ? 'A enviar...' : 'Enviar'}
+                  </button>
+                </div>
               </div>
             )}
 
             <div>
               <h3 className="text-xl font-semibold mb-2">Descrição</h3>
-              <p className="text-gray-700">{produto.description}</p>
+              <p className="text-gray-700">{product.description}</p>
             </div>
           </div>
         </div>
@@ -152,7 +361,7 @@ function Button({
   return (
     <button
       onClick={onClick}
-      className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition"
+      className="w-full px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition"
     >
       {children}
     </button>
@@ -160,7 +369,9 @@ function Button({
 }
 
 function Card({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <div className="bg-[#E0F4F4] rounded-lg shadow-md p-4">{children}</div>;
+  return (
+    <div className="bg-[#E0F4F4] rounded-lg shadow-md p-4">{children}</div>
+  );
 }
 
 function CardContent({ children }: Readonly<{ children: React.ReactNode }>) {
