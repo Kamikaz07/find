@@ -7,24 +7,26 @@ VALUES (
     true
 ) ON CONFLICT (email) DO NOTHING;
 
--- Insert a test announcement
-INSERT INTO announcements (
+-- Insert a test advertisement (formerly announcement)
+INSERT INTO advertisements (
     id,
     title,
     description,
     location,
-    type,
     image_url,
-    user_id
+    user_id,
+    publisher,
+    is_public
 )
 VALUES (
-    '00000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000002', -- Consistent ID
     'Lost Dog in Central Park',
     'Small brown dog, answers to the name Max. Last seen near the fountain.',
     'Central Park, New York',
-    'lost',
     'https://example.com/dog.jpg',
-    '00000000-0000-0000-0000-000000000001'
+    '00000000-0000-0000-0000-000000000001',
+    'Central Park Animal Welfare', -- Example publisher
+    TRUE
 ) ON CONFLICT (id) DO NOTHING;
 
 -- Insert a test marketplace item
@@ -47,4 +49,4 @@ VALUES (
     'Brooklyn, New York',
     'sale',
     'https://example.com/camera.jpg'
-) ON CONFLICT (id) DO NOTHING; 
+) ON CONFLICT (id) DO NOTHING;

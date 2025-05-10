@@ -1,51 +1,55 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react"; // Added useEffect, useCallback
 import Link from "next/link";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import Image from "next/image";
 
+// Updated Anuncio type to match advertisement structure from API
 type Anuncio = {
-  id: number;
+  id: string; // Changed from number to string
   title: string;
-  imageUrl: string;
+  image_url?: string; // Changed from imageUrl, made optional
   location: string;
   description: string;
+  publisher?: string; // Added publisher
+  // Add other fields if necessary, e.g., created_at, is_public
 };
 
-const anuncios: Anuncio[] = [
-  {
-    id: 1,
-    title: "Bens necessários para os Bombeiros",
-    imageUrl: "/3.jpg",
-    location: "Sintra, Portugal",
-    description:
-      "Precisamos de bens para atender as emergências da comunidade.",
-  },
-  {
-    id: 2,
-    title: "Cadeira de Rodas Urgente",
-    imageUrl: "/2.jpg",
-    location: "Porto, Portugal",
-    description:
-      "Uma cadeira de rodas é necessária para um idoso da comunidade.",
-  },
-  {
-    id: 3,
-    title: "Tampinhas Plásticas para Doação",
-    imageUrl: "/1.jpg",
-    location: "Lisboa, Portugal",
-    description: "Precisamos de tampinhas plásticas para campanha de doação.",
-  },
-];
+// Removed hardcoded anuncios array
 
 const AnunciosPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  
+  const [advertisements, setAdvertisements] = useState<Anuncio[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchAdvertisements = useCallback(async (currentSearchTerm: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/advertisements?search=${encodeURIComponent(currentSearchTerm)}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch advertisements: ${response.statusText}`);
+      }
+      const data = await response.json();
+      setAdvertisements(data.advertisements ?? []); // API returns { advertisements: [] }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
+      setAdvertisements([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAdvertisements(searchTerm); // Initial fetch and fetch on searchTerm change if desired immediately
+  }, [fetchAdvertisements, searchTerm]); // Or just [fetchAdvertisements] for initial load only and rely on handleSearch
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Search functionality here
+    fetchAdvertisements(searchTerm); // Fetch with the current search term on form submit
   };
 
   return (
@@ -81,36 +85,43 @@ const AnunciosPage = () => {
           </Link>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {anuncios.map((anuncio) => (
-            <Link
-              key={anuncio.id}
-              href={`/anuncio/${anuncio.id}`}
-              className="block"
-            >
-              <div className="bg-[#B2E4E4] rounded-lg shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
-                <Image
-                  src={anuncio.imageUrl}
-                  alt={anuncio.title}
-                  width={500}
-                  height={200}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-4">
-                  <h3 className="text-xl font-bold text-center text-teal-800">
-                    {anuncio.title}
-                  </h3>
-                  <p className="text-center text-gray-600">
-                    {anuncio.location}
-                  </p>
-                  <p className="text-gray-700 mt-3 line-clamp-2 text-center">
-                    {anuncio.description}
-                  </p>
+        {loading && <p className="text-center">Carregando anúncios...</p>}
+        {error && <p className="text-center text-red-500">Erro ao carregar anúncios: {error}</p>}
+        {!loading && !error && advertisements.length === 0 && (
+          <p className="text-center">Nenhum anúncio encontrado.</p>
+        )}
+        {!loading && !error && advertisements.length > 0 && (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {advertisements.map((anuncio) => (
+              <Link
+                key={anuncio.id}
+                href={`/anuncio/${anuncio.id}`} // Link remains /anuncio/[id] as per previous updates
+                className="block"
+              >
+                <div className="bg-[#B2E4E4] rounded-lg shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
+                  <Image
+                    src={anuncio.image_url ?? "/logo.jpg"} // Use image_url, provide a fallback
+                    alt={anuncio.title}
+                    width={500}
+                    height={200}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="p-4">
+                    <h3 className="text-xl font-bold text-center text-teal-800">
+                      {anuncio.title}
+                    </h3>
+                    <p className="text-center text-gray-600">
+                      {anuncio.location}
+                    </p>
+                    <p className="text-gray-700 mt-3 line-clamp-2 text-center">
+                      {anuncio.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </main>
       <Footer />
     </div>

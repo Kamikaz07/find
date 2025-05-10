@@ -6,38 +6,33 @@ import { cookies } from 'next/headers';
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const type = searchParams.get('type');
     const location = searchParams.get('location');
 
     const cookieStore = cookies();
     const supabase = await createClient(cookieStore);
 
-    // Get all announcements
+    // Get all advertisements (formerly announcements)
     let query = supabase
-      .from('announcements')
+      .from('advertisements') // Changed from 'announcements'
       .select('*')
       .order('created_at', { ascending: false });
-
-    if (type) {
-      query = query.eq('type', type);
-    }
 
     if (location) {
       query = query.ilike('location', `%${location}%`);
     }
 
-    const { data: announcements, error } = await query;
+    const { data: advertisements, error } = await query;
 
     if (error) {
-      console.error('Error fetching announcements:', error);
+      console.error('Error fetching advertisements:', error);
       return NextResponse.json(
-        { error: 'Error fetching announcements' },
+        { error: 'Error fetching advertisements' },
         { status: 500 }
       );
     }
 
-    // Return announcements without user information for public viewing
-    return NextResponse.json(announcements || []);
+    // Return advertisements without user information for public viewing
+    return NextResponse.json(advertisements || []);
   } catch (error) {
     console.error('Error in GET /api/announcements:', error);
     return NextResponse.json(
@@ -71,9 +66,9 @@ export async function POST(request: NextRequest) {
   // 3) lê o body
   const body = await request.json();
 
-  // 4) insert com user_id
-  const { data: announcement, error } = await supabase
-    .from('announcements')
+  // 4) insert into 'advertisements' (formerly 'announcements')
+  const { data: advertisement, error } = await supabase // Renamed 'announcement' to 'advertisement' for clarity
+    .from('advertisements') // Changed from 'announcements'
     .insert({ ...body, user_id: userId })
     .select()
     .single();
@@ -81,10 +76,10 @@ export async function POST(request: NextRequest) {
   if (error) {
     console.error('Supabase insert error:', error);
     return NextResponse.json(
-      { error: 'Error creating announcement' },
+      { error: 'Error creating advertisement' },
       { status: 500 }
     );
   }
 
-  return NextResponse.json(announcement);
+  return NextResponse.json(advertisement); // Renamed 'announcement' to 'advertisement'
 }

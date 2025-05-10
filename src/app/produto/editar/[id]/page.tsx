@@ -1,47 +1,95 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
-import { Header } from '../../../components/Header';
-import { Footer } from '../../../components/Footer';
-import Image from 'next/image';
+import React, { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { Header } from "../../../../components/Header";
+import { Footer } from "../../../../components/Footer";
+import Image from "next/image";
 import Swal from 'sweetalert2';
 
-export default function CreateMercadoItemPage() {
-  const supabase = createClient();
-  const router = useRouter();
-  
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    price: '',
-    category: 'Geral',
-    location: '',
-    publisher: '',
-    is_public: true
-  });
-  const [image, setImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [dragActive, setDragActive] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+// Define the type for the product data
+interface ProductData {
+  title: string;
+  description: string;
+  price: string; // Keep as string for input, convert to float on submit
+  location: string;
+  publisher: string;
+  category: string;
+  image_url?: string | null;
+  is_public: boolean;
+}
 
-  // Predefined categories to match other product forms
+const EditProductPage = () => {
+  const [formData, setFormData] = useState<ProductData>({
+    title: "",
+    description: "",
+    price: "",
+    location: "",
+    publisher: "",
+    category: "Geral",
+    image_url: null,
+    is_public: true,
+  });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+
+  const router = useRouter();
+  const params = useParams();
+  const id = params?.id as string;
+
+  // Predefined categories
   const categories = [
     "Geral", "Eletrônicos", "Móveis", "Vestuário", "Livros", 
     "Esportes", "Cozinha", "Decoração", "Jardim", "Outros"
   ];
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const res = await fetch("/api/auth/session");
-      const session = await res.json();
-      if (!session?.user) {
-        router.push("/login");
+    const checkAuthAndFetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const authRes = await fetch("/api/auth/session");
+        const session = await authRes.json();
+        if (!session?.user) {
+          router.push("/login");
+          return;
+        }
+
+        if (id) {
+          const productRes = await fetch(`/api/products/${id}`);
+          if (!productRes.ok) {
+            const errorData = await productRes.json();
+            throw new Error(errorData.error || "Falha ao carregar dados do produto");
+          }
+          const { product } = await productRes.json();
+          setFormData({
+            title: product.title || "",
+            description: product.description || "",
+            price: product.price?.toString() || "",
+            location: product.location || "",
+            publisher: product.publisher || "",
+            category: product.category || "Geral",
+            image_url: product.image_url,
+            is_public: product.is_public === undefined ? true : product.is_public,
+          });
+          if (product.image_url) {
+            setImagePreview(product.image_url);
+          }
+        }
+      } catch (err) {
+        console.error("Error:", err);
+        setError(err instanceof Error ? err.message : "Ocorreu um erro desconhecido");
+        Swal.fire('Erro', err instanceof Error ? err.message : 'Ocorreu um erro ao carregar os dados.', 'error');
+      } finally {
+        setIsLoading(false);
       }
     };
-    checkAuth();
-  }, [router]);
+
+    checkAuthAndFetchData();
+  }, [id, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -55,33 +103,23 @@ export default function CreateMercadoItemPage() {
 
   const handleFileChange = (file: File | null) => {
     if (file && file.type.startsWith("image/")) {
-      setImage(file);
+      setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
       setError(null);
     } else if (file) {
       setError("Por favor, selecione um arquivo de imagem válido.");
       Swal.fire('Formato inválido', 'Por favor, selecione um arquivo de imagem válido.', 'error');
-      setImage(null);
-      setImagePreview(null);
+      setImageFile(null);
+      setImagePreview(formData.image_url ?? null); // Revert to original image if new one is invalid
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUploadEvent = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileChange(e.target.files?.[0] || null);
   };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { 
-    e.preventDefault(); 
-    e.stopPropagation(); 
-    setDragActive(true); 
-  };
-  
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { 
-    e.preventDefault(); 
-    e.stopPropagation(); 
-    setDragActive(false); 
-  };
-  
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setDragActive(true); };
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setDragActive(false); };
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -92,79 +130,71 @@ export default function CreateMercadoItemPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
-    // Validation
-    if (!formData.title || !formData.description || !formData.price || !formData.location || !formData.publisher) {
-      setError("Por favor, preencha todos os campos obrigatórios.");
+
+    if (!formData.title || !formData.price || !formData.location || !formData.publisher || !formData.description || !formData.category) {
       Swal.fire('Campos obrigatórios', 'Por favor, preencha todos os campos obrigatórios.', 'warning');
       return;
     }
 
-    // Price validation
     const priceValue = parseFloat(formData.price);
     if (isNaN(priceValue) || priceValue <= 0) {
-      setError("Por favor, insira um preço válido maior que zero.");
       Swal.fire('Preço inválido', 'Por favor, insira um preço válido maior que zero.', 'warning');
       return;
     }
-
-    // Show loading indicator
+    
     Swal.fire({
-      title: 'Criando item',
+      title: 'Atualizando produto',
       text: 'Por favor, aguarde...',
       allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
+      didOpen: () => { Swal.showLoading(); }
     });
 
     try {
-      // Upload image if provided
-      let imageUrl = null;
-      
-      if (image) {
-        const formData = new FormData();
-        formData.append('file', image);
-        
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-
+      let currentImageUrl = formData.image_url;
+      if (imageFile) {
+        const imageFormData = new FormData();
+        imageFormData.append('file', imageFile);
+        const uploadResponse = await fetch('/api/upload', { method: 'POST', body: imageFormData });
         if (!uploadResponse.ok) {
           const errorData = await uploadResponse.json();
-          throw new Error(errorData.error || 'Failed to upload image');
+          throw new Error(errorData.error || 'Falha ao carregar nova imagem.');
         }
-
         const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
+        currentImageUrl = uploadData.url;
       }
 
-      // Insert into marketplace table
-      const { error: dbError } = await supabase
-        .from('marketplace')
-        .insert([{ 
-          title: formData.title, 
-          description: formData.description, 
-          price: priceValue, 
-          image_url: imageUrl,
-          category: formData.category,
-          location: formData.location,
-          publisher: formData.publisher,
-          is_public: formData.is_public
-        }]);
+      const response = await fetch(`/api/products/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, price: priceValue, image_url: currentImageUrl }),
+      });
 
-      if (dbError) throw new Error(dbError.message);
-      
-      Swal.fire('Sucesso!', 'Item criado com sucesso!', 'success')
-        .then(() => router.push('/mercado'));
-        
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Falha ao atualizar produto.');
+      }
+
+      Swal.fire('Sucesso!', 'Produto atualizado com sucesso!', 'success')
+        .then(() => router.push('/conta')); // Redirect to account page or product page
+
     } catch (err) {
-      console.error('Error creating marketplace item:', err);
+      console.error('Error updating product:', err);
       setError(err instanceof Error ? err.message : 'Ocorreu um erro desconhecido.');
-      Swal.fire('Erro', `Erro ao criar item: ${err instanceof Error ? err.message : 'Erro desconhecido'}`, 'error');
+      Swal.fire('Erro', `Erro ao atualizar produto: ${err instanceof Error ? err.message : 'Erro desconhecido'}`, 'error');
     }
   };
+
+  if (isLoading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen flex items-center justify-center bg-[#E0F4F4]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
@@ -173,7 +203,7 @@ export default function CreateMercadoItemPage() {
         {/* Standardized container styling */}
         <div className="w-full max-w-lg bg-white p-8 rounded-xl shadow-xl">
           <h1 className="text-3xl font-bold text-center mb-8 text-teal-700">
-            Adicionar Item ao Mercado
+            Editar Produto
           </h1>
           {error && (
             <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md" role="alert">
@@ -185,7 +215,7 @@ export default function CreateMercadoItemPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="title">
-                Título do Item
+                Nome do Produto
               </label>
               <input
                 id="title"
@@ -261,10 +291,9 @@ export default function CreateMercadoItemPage() {
                 required
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="publisher">
-                Vendedor
+                Vendedor (Seu nome ou nome da loja)
               </label>
               <input
                 id="publisher"
@@ -273,14 +302,12 @@ export default function CreateMercadoItemPage() {
                 value={formData.publisher}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500 transition duration-150 ease-in-out"
-                placeholder="Seu nome ou nome da loja"
                 required
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="description">
-                Descrição
+                Descrição Detalhada
               </label>
               <textarea
                 id="description"
@@ -292,10 +319,9 @@ export default function CreateMercadoItemPage() {
                 required
               ></textarea>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Imagem do Item
+                Imagem do Produto
               </label>
               <div 
                 className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${dragActive ? 'border-teal-500 bg-teal-50' : 'border-gray-300 border-dashed'} rounded-lg hover:border-teal-400 transition duration-150 ease-in-out`}
@@ -311,7 +337,7 @@ export default function CreateMercadoItemPage() {
                   <div className="flex text-sm text-gray-600">
                     <label htmlFor="imageUpload" className="relative cursor-pointer bg-white rounded-md font-medium text-teal-600 hover:text-teal-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-teal-500">
                       <span>Carregar um ficheiro</span>
-                      <input id="imageUpload" name="imageUpload" type="file" className="sr-only" onChange={handleImageUpload} accept="image/*" />
+                      <input id="imageUpload" name="imageUpload" type="file" className="sr-only" onChange={handleImageUploadEvent} accept="image/*" />
                     </label>
                     <p className="pl-1">ou arraste e solte</p>
                   </div>
@@ -323,7 +349,7 @@ export default function CreateMercadoItemPage() {
                 <div className="mt-4 relative w-48 h-48 mx-auto border border-gray-200 rounded-md overflow-hidden shadow-sm">
                   <Image
                     src={imagePreview}
-                    alt="Preview do item"
+                    alt="Preview do produto"
                     layout="fill"
                     objectFit="cover"
                   />
@@ -331,8 +357,10 @@ export default function CreateMercadoItemPage() {
                     type="button"
                     className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs leading-none hover:bg-red-600 transition-colors"
                     onClick={() => {
-                      setImage(null);
-                      setImagePreview(null);
+                      setImageFile(null);
+                      setImagePreview(null); // Clear preview or revert to original if needed
+                      // If you want to revert to original image_url from formData:
+                      // setImagePreview(formData.image_url);
                     }}
                     aria-label="Remover imagem"
                   >
@@ -342,30 +370,42 @@ export default function CreateMercadoItemPage() {
               )}
             </div>
 
-            <div className="flex items-center space-x-3">
-              <input
-                id="is_public"
-                name="is_public"
-                type="checkbox"
-                checked={formData.is_public}
-                onChange={handleChange}
-                className="h-5 w-5 text-teal-600 border-gray-300 rounded focus:ring-teal-500 shadow-sm transition duration-150 ease-in-out"
-              />
-              <label htmlFor="is_public" className="text-sm font-medium text-gray-700">
-                Tornar Item Público?
-              </label>
+            <div className="flex items-center space-x-3 mt-6 mb-6">
+                <input
+                  id="is_public"
+                  name="is_public"
+                  type="checkbox"
+                  checked={formData.is_public}
+                  onChange={handleChange}
+                  className="h-5 w-5 text-teal-600 border-gray-300 rounded focus:ring-teal-500 shadow-sm transition duration-150 ease-in-out"
+                />
+                <label htmlFor="is_public" className="text-sm font-medium text-gray-700">
+                  Tornar Produto Público?
+                </label>
             </div>
 
-            <button
-              type="submit"
-              className="w-full py-3 px-6 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-150 ease-in-out"
-            >
-              Criar Item
-            </button>
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full sm:w-auto flex-1 py-3 px-6 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-150 ease-in-out disabled:opacity-70"
+              >
+                {isLoading ? 'Salvando...' : 'Salvar Alterações'}
+              </button>
+              <button
+                type="button"
+                onClick={() => router.back()} // Or router.push('/conta')
+                className="w-full sm:w-auto flex-1 py-3 px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition duration-150 ease-in-out"
+              >
+                Cancelar
+              </button>
+            </div>
           </form>
         </div>
       </div>
       <Footer />
     </>
   );
-}
+};
+
+export default EditProductPage;

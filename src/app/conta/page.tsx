@@ -297,8 +297,8 @@ const ContaPage = () => {
     };
     
     // Fetch additional user data
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-    const fetchUserData = async (_email: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const fetchUserData = async (_email: string) => {
       try {
         const response = await fetch('/api/users/current');
         
@@ -504,12 +504,16 @@ const ContaPage = () => {
           icon: 'success',
           confirmButtonColor: '#40B3B3'
         });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
+      } catch (error: unknown) {
+        // Convert unknown error to a proper type that has a message property
+        const errorWithMessage = error instanceof Error 
+          ? error 
+          : { message: 'Ocorreu um erro desconhecido ao atualizar a password.' };
+          
         console.error('Error updating password:', error);
         Swal.fire({
           title: 'Erro',
-          text: error.message || 'Ocorreu um erro ao atualizar a password. Tente novamente.',
+          text: errorWithMessage.message || 'Ocorreu um erro ao atualizar a password. Tente novamente.',
           icon: 'error',
           confirmButtonColor: '#40B3B3'
         });
@@ -551,8 +555,16 @@ const ContaPage = () => {
           method: 'DELETE',
         });
 
+        let responseData;
+        try {
+          responseData = await response.json();
+        } catch (parseError) {
+          console.error('Error parsing response:', parseError);
+          responseData = {};
+        }
+        
         if (!response.ok) {
-          throw new Error('Failed to delete advertisement');
+          throw new Error(responseData.error || 'Failed to delete advertisement');
         }
 
         // Refresh the list
@@ -565,13 +577,18 @@ const ContaPage = () => {
           icon: 'success',
           confirmButtonColor: '#40B3B3'
         });
-      } catch (error) {
+      } catch (error: unknown) {
+        // Convert unknown error to a proper type that has a message property
+        const errorWithMessage = error instanceof Error 
+          ? error 
+          : { message: 'Erro desconhecido ao excluir anúncio.' };
+        
         console.error('Error deleting advertisement:', error);
         
         // Substituir alert por SweetAlert2
         Swal.fire({
           title: 'Erro',
-          text: 'Erro ao excluir anúncio. Tente novamente.',
+          text: errorWithMessage.message || 'Erro ao excluir anúncio. Tente novamente.',
           icon: 'error',
           confirmButtonColor: '#40B3B3'
         });
@@ -611,8 +628,16 @@ const ContaPage = () => {
           method: 'DELETE',
         });
 
+        let responseData;
+        try {
+          responseData = await response.json();
+        } catch (parseError) {
+          console.error('Error parsing response:', parseError);
+          responseData = {};
+        }
+        
         if (!response.ok) {
-          throw new Error('Failed to delete product');
+          throw new Error(responseData.error || 'Failed to delete product');
         }
 
         // Refresh the list
@@ -625,13 +650,18 @@ const ContaPage = () => {
           icon: 'success',
           confirmButtonColor: '#40B3B3'
         });
-      } catch (error) {
+      } catch (error: unknown) {
+        // Convert unknown error to a proper type that has a message property
+        const errorWithMessage = error instanceof Error 
+          ? error 
+          : { message: 'Erro desconhecido ao excluir produto.' };
+        
         console.error('Error deleting product:', error);
         
         // Substituir alert por SweetAlert2
         Swal.fire({
           title: 'Erro',
-          text: 'Erro ao excluir produto. Tente novamente.',
+          text: errorWithMessage.message || 'Erro ao excluir produto. Tente novamente.',
           icon: 'error',
           confirmButtonColor: '#40B3B3'
         });
@@ -1088,22 +1118,120 @@ const ContaPage = () => {
 
           {/* Perfil tab */}
           {abaAtiva === "perfil" && (
-            <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
-              <div>
-                <label className="text-sm font-semibold text-teal-700">Nome</label>
-                <div className="mt-1 px-4 py-2 bg-gray-100 rounded-md">{user.nome}</div>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="border-b pb-4 mb-4">
+                <h2 className="text-xl font-semibold text-teal-800 mb-4">Informações pessoais</h2>
+                <form onSubmit={handleProfileUpdate} className="space-y-4">
+                  <div>
+                    <label htmlFor="nome" className="block text-sm font-medium text-teal-700">Nome</label>
+                    <input 
+                      type="text"
+                      id="nome"
+                      value={editableUser.nome}
+                      onChange={(e) => setEditableUser({...editableUser, nome: e.target.value})}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-teal-700">Email</label>
+                    <input 
+                      type="email"
+                      id="email"
+                      value={user.email}
+                      disabled
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-100"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">O email não pode ser alterado</p>
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-teal-700">Telemóvel</label>
+                    <input 
+                      type="tel"
+                      id="phone"
+                      value={editableUser.phone}
+                      onChange={(e) => setEditableUser({...editableUser, phone: e.target.value})}
+                      placeholder="+351 912 345 678"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                    />
+                  </div>
+                  
+                  <div className="pt-2">
+                    <button 
+                      type="submit" 
+                      className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                    >
+                      {isSaving ? (
+                        <div className="flex items-center">
+                          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                          A guardar...
+                        </div>
+                      ) : "Guardar alterações"}
+                    </button>
+                  </div>
+                </form>
               </div>
+              
               <div>
-                <label className="text-sm font-semibold text-teal-700">Email</label>
-                <div className="mt-1 px-4 py-2 bg-gray-100 rounded-md">{user.email}</div>
+                <h2 className="text-xl font-semibold text-teal-800 mb-4">Alterar password</h2>
+                <form onSubmit={handlePasswordChange} className="space-y-4">
+                  <div>
+                    <label htmlFor="currentPassword" className="block text-sm font-medium text-teal-700">Password atual</label>
+                    <input 
+                      type="password"
+                      id="currentPassword"
+                      value={passwords.currentPassword}
+                      onChange={(e) => setPasswords({...passwords, currentPassword: e.target.value})}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="newPassword" className="block text-sm font-medium text-teal-700">Nova password</label>
+                    <input 
+                      type="password"
+                      id="newPassword"
+                      value={passwords.newPassword}
+                      onChange={(e) => setPasswords({...passwords, newPassword: e.target.value})}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-teal-700">Confirmar nova password</label>
+                    <input 
+                      type="password"
+                      id="confirmPassword"
+                      value={passwords.confirmPassword}
+                      onChange={(e) => setPasswords({...passwords, confirmPassword: e.target.value})}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <p className="text-xs text-gray-500 mb-4">
+                      A password deve ter pelo menos 9 caracteres, incluindo pelo menos uma letra maiúscula, 
+                      uma letra minúscula e um número.
+                    </p>
+                    <button 
+                      type="submit" 
+                      className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                    >
+                      {isSaving ? (
+                        <div className="flex items-center">
+                          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                          A guardar...
+                        </div>
+                      ) : "Alterar password"}
+                    </button>
+                  </div>
+                </form>
               </div>
-              <div>
-                <label className="text-sm font-semibold text-teal-700">Telemóvel</label>
-                <div className="mt-1 px-4 py-2 bg-gray-100 rounded-md">{user.phone}</div>
-              </div>
-              <button className="mt-4 bg-teal-600 text-white px-4 py-2 rounded-md shadow hover:bg-teal-700 transition">
-                Editar Dados (placeholder)
-              </button>
             </div>
           )}
         </main>

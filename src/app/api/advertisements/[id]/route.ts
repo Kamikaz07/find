@@ -70,7 +70,7 @@ export async function PUT(
   try {
     const resolvedParams = await context.params; // Added await
     const id = resolvedParams.id; // Use resolved id
-    const { title, description, location, publisher, image_url } = await request.json();
+    const { title, description, location, publisher, image_url, is_public, expiration_date } = await request.json(); // Added is_public, expiration_date
     
     if (!id) {
       return NextResponse.json(
@@ -149,17 +149,38 @@ export async function PUT(
       );
     }
 
+    // Define a type for advertisement update data
+    interface AdvertisementUpdateData {
+      title: string;
+      description: string;
+      location: string;
+      publisher: string;
+      image_url?: string | null;
+      updated_at: string;
+      is_public?: boolean;
+      expiration_date?: string | null;
+    }
+
     // Update the advertisement
+    const updateData: AdvertisementUpdateData = {
+      title,
+      description,
+      location,
+      publisher,
+      image_url,
+      updated_at: new Date().toISOString()
+    };
+
+    if (is_public !== undefined) {
+      updateData.is_public = is_public;
+    }
+    if (expiration_date !== undefined) { // Allow clearing the date by passing null or handle empty string if needed
+      updateData.expiration_date = expiration_date ? new Date(expiration_date).toISOString() : null;
+    }
+
     const { data, error } = await supabase
       .from('advertisements')
-      .update({
-        title,
-        description,
-        location,
-        publisher,
-        image_url,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
@@ -263,6 +284,31 @@ export async function DELETE(
       );
     }
 
+    // First delete any goals associated with the advertisement
+    const { error: goalsDeleteError } = await supabase
+      .from('advertisement_goals')
+      .delete()
+      .eq('advertisement_id', id);
+
+    if (goalsDeleteError) {
+      console.error('Error deleting advertisement goals:', goalsDeleteError);
+      return NextResponse.json(
+        { error: 'Failed to delete advertisement goals' },
+        { status: 500 }
+      );
+    }
+
+    // Delete any chat messages associated with the advertisement
+    const { error: messagesDeleteError } = await supabase
+      .from('chat_messages')
+      .delete()
+      .eq('advertisement_id', id);
+
+    if (messagesDeleteError) {
+      console.error('Error deleting chat messages:', messagesDeleteError);
+      // Continue with advertisement deletion even if messages deletion fails
+    }
+
     // Delete the advertisement from the database
     const { error } = await supabase
       .from('advertisements')
@@ -277,7 +323,7 @@ export async function DELETE(
       );
     }
 
-    return NextResponse.json({ message: 'Advertisement deleted successfully' });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting advertisement:', error);
     return NextResponse.json(

@@ -19,6 +19,7 @@ const VenderPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [category, setCategory] = useState("Geral");
+  const [isPublic, setIsPublic] = useState(true);
 
   const router = useRouter();
   useEffect(() => {
@@ -108,7 +109,8 @@ const VenderPage = () => {
           location,
           publisher,
           image_url: imageUrl,
-          category
+          category,
+          is_public: isPublic,
         }),
       });
 
@@ -206,16 +208,20 @@ const VenderPage = () => {
     <>
       <Header />
       <div className="min-h-screen flex items-center justify-center bg-[#E0F4F4] py-10 px-4">
-        <div className="w-full max-w-lg bg-white p-6 rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold text-center mb-4">
+        {/* Standardized container styling */}
+        <div className="w-full max-w-lg bg-white p-8 rounded-xl shadow-xl">
+          <h1 className="text-3xl font-bold text-center mb-8 text-teal-700">
             Vender Produto
           </h1>
+          {/* error state is handled by Swal, but can be kept for non-Swal errors if any */}
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-              <span className="block sm:inline">{error}</span>
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md" role="alert">
+              <p className="font-bold">Erro</p>
+              <p>{error}</p>
             </div>
           )}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Standardized form styling */}
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-gray-700 font-medium mb-1" htmlFor="title">
                 Nome do Produto
@@ -368,12 +374,28 @@ const VenderPage = () => {
                 </div>
               )}
             </div>
+            
+            <div className="flex items-center space-x-4">
+              <input
+                id="isPublic"
+                type="checkbox"
+                checked={isPublic}
+                onChange={(e) => setIsPublic(e.target.checked)}
+                className="h-5 w-5 text-teal-600 border-gray-300 rounded focus:ring-teal-500 transition duration-150 ease-in-out"
+              />
+              <label htmlFor="isPublic" className="text-sm font-medium text-gray-700">
+                Tornar Produto Público?
+              </label>
+            </div>
+
+            <div>
             <button
               type="submit"
-              className="w-full py-3 bg-teal-500 text-white font-semibold rounded-md hover:bg-teal-600 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+              className="w-full py-3 px-6 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-150 ease-in-out disabled:opacity-70"
             >
               Publicar Produto
             </button>
+            </div> {/*This div was missing a closing tag, added it here. Or it might be an extra opening tag if the button is meant to be outside a div.*/}
           </form>
         </div>
       </div>

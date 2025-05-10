@@ -7,11 +7,11 @@ import { AuthSession } from '@supabase/supabase-js';
 // GET: Fetch goals for a specific advertisement
 export async function GET(
   request: NextRequest,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  context: { params: any } // Workaround for Next.js 15.2.3 type issue
+  context: { params: Promise<{ id: string }> } // Updated to use Promise
 ) {
   try {
-    const id = context.params.id as string; // Cast id back to string
+    const resolvedParams = await context.params;
+    const id = resolvedParams.id; // No need to cast since type is specified
     
     if (!id) {
       return NextResponse.json(
@@ -49,11 +49,11 @@ export async function GET(
 // POST: Create a new goal for an advertisement
 export async function POST(
   request: NextRequest,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  context: { params: any } // Workaround for Next.js 15.2.3 type issue
+  context: { params: Promise<{ id: string }> } // Updated to use Promise
 ) {
   try {
-    const id = context.params.id as string; // Cast id back to string
+    const resolvedParams = await context.params;
+    const id = resolvedParams.id; // No need to cast since type is specified
     const { goal_type, target_amount } = await request.json();
 
     // Validate inputs
@@ -166,11 +166,11 @@ export async function POST(
 // PATCH: Update the current amount of a goal
 export async function PATCH(
   request: NextRequest,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  context: { params: any } // Workaround for Next.js 15.2.3 type issue
+  context: { params: Promise<{ id: string }> } // Updated to use Promise
 ) {
   try {
-    const id = context.params.id as string; // Cast id back to string
+    const resolvedParams = await context.params;
+    const id = resolvedParams.id; // No need to cast since type is specified
     const { goal_id, amount } = await request.json();
 
     // Validate inputs

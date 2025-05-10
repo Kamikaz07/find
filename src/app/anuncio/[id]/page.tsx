@@ -1,84 +1,166 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Header } from "../../../components/Header";
 import { Footer } from "../../../components/Footer";
 import Image from "next/image";
-// Removed unused Swal import
 
 type Anuncio = {
-  id: number;
+  id: string;
   title: string;
-  imageUrl: string;
-  location: string;
   description: string;
-  contact: string;
+  location: string;
+  publisher: string;     // From advertisements.publisher
+  image_url?: string;   // From advertisements table
+  imageUrl?: string;    // Mapped from image_url for client use
+  is_public?: boolean;  // From advertisements table
+  contact?: string;     // User's phone number, added by API
+  contact_email?: string; // User's email, added by API
+  // Removed user object as contact info is flattened
 };
 
-const anuncios: Anuncio[] = [
-  {
-    id: 1,
-    title: "Bens necessários para os Bombeiros",
-    imageUrl: "/3.jpg",
-    location: "Sintra, Portugal",
-    description:
-      "Precisamos de bens para atender as emergências da comunidade.",
-    contact: "904 248 357",
-  },
-  {
-    id: 2,
-    title: "Cadeira de Rodas Urgente",
-    imageUrl: "/2.jpg",
-    location: "Porto, Portugal",
-    description:
-      "Uma cadeira de rodas é necessária para um idoso da comunidade.",
-    contact: "904 248 357",
-  },
-  {
-    id: 3,
-    title: "Tampinhas Plásticas para Doação",
-    imageUrl: "/1.jpg",
-    location: "Lisboa, Portugal",
-    description: "Precisamos de tampinhas plásticas para campanha de doação.",
-    contact: "904 248 357",
-  },
-];
+interface Goal {
+  id: string;
+  goal_type: 'donation' | 'delivery';
+  current_amount: number;
+  target_amount: number;
+}
 
 export default function AnnouncementPage() {
   const router = useRouter();
-  const { id } = useParams();
+  const params = useParams();
+  const id = params.id as string; // id is a string from params
+
+  const [anuncio, setAnuncio] = useState<Anuncio | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [goalsLoading, setGoalsLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [goalsError, setGoalsError] = useState<string | null>(null); // Keep for future use
+
   const [showContact, setShowContact] = useState(false);
   const [donationAmount, setDonationAmount] = useState("");
-  // Fixed the 'any' type with a proper interface
-  interface Goal {
-    id: string;
-    goal_type: 'donation' | 'delivery';
-    current_amount: number;
-    target_amount: number;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [goals, _setGoals] = useState<Goal[]>([]);
 
-  const anuncio = anuncios.find((anuncio) => anuncio.id === Number(id));
+  useEffect(() => {
+    if (id) {
+      const fetchAnnouncement = async () => {
+        try {
+          setLoading(true);
+          const response = await fetch(`/api/advertisements/${id}`); // Changed URL
+          if (!response.ok) {
+            throw new Error(`Failed to fetch announcement: ${response.statusText}`);
+          }
+          const responseData = await response.json(); // API returns { advertisement: { ... } }
+          const fetchedAnuncio: Anuncio = responseData.advertisement; // Extract the advertisement object
+
+          // Map image_url to imageUrl if image_url exists and imageUrl doesn't
+          if (fetchedAnuncio?.image_url && !fetchedAnuncio.imageUrl) { // Changed to optional chain
+            fetchedAnuncio.imageUrl = fetchedAnuncio.image_url;
+          }
+          setAnuncio(fetchedAnuncio);
+          setError(null);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "An unknown error occurred");
+          setAnuncio(null);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchAnnouncement();
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (anuncio?.id) {
+      const fetchGoals = async () => {
+        try {
+          setGoalsLoading(true);
+          // Assuming "anuncios" are "advertisements" for goals API
+          const response = await fetch(`/api/advertisements/${anuncio.id}/goals`);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch goals: ${response.statusText}`);
+          }
+          const data = await response.json();
+          setGoals(data.goals ?? []); // API returns { goals: [] }
+          setGoalsError(null);
+        } catch (err) {
+          setGoalsError(err instanceof Error ? err.message : "An unknown error occurred fetching goals");
+          setGoals([]);
+        } finally {
+          setGoalsLoading(false);
+        }
+      };
+      fetchGoals();
+    }
+  }, [anuncio?.id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#E0F4F4]">
+        <p>Carregando anúncio...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#E0F4F4]">
+        <p>Erro ao carregar o anúncio: {error}</p>
+      </div>
+    );
+  }
 
   if (!anuncio) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#E0F4F4]">
         <p>Anúncio não encontrado</p>
       </div>
     );
   }
 
   const handlePromote = () => {
-    router.push(
-      `/pagamento?title=${encodeURIComponent(anuncio.title)}&imageUrl=${encodeURIComponent(anuncio.imageUrl)}`
-    );
+    if (anuncio) {
+      router.push(
+        `/pagamento?title=${encodeURIComponent(anuncio.title)}&imageUrl=${encodeURIComponent(anuncio.imageUrl ?? '')}`
+      );
+    }
   }
 
-  const handleDonation = (goalId: string) => {
-    // Donation handling logic
-    console.log(`Donating ${donationAmount} to goal ${goalId}`);
+  const handleDonation = async (goalId: string) => {
+    if (!donationAmount || parseFloat(donationAmount) <= 0) {
+      alert("Por favor, insira um valor de doação válido.");
+      return;
+    }
+    try {
+      // Assuming PATCH request to update goal current_amount
+      const response = await fetch(`/api/advertisements/${anuncio.id}/goals`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          goal_id: goalId,
+          amount: parseFloat(donationAmount),
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error ?? `Failed to process donation: ${response.statusText}`);
+      }
+      const updatedGoal = await response.json();
+      
+      // Update the specific goal in the local state
+      setGoals(prevGoals => prevGoals.map(g => g.id === goalId ? { ...g, current_amount: updatedGoal.goal.current_amount } : g));
+      setDonationAmount(""); // Reset donation amount
+      alert("Doação processada com sucesso!");
+
+    } catch (err) {
+      console.error("Error processing donation:", err);
+      alert(err instanceof Error ? err.message : "Ocorreu um erro ao processar a doação.");
+    }
   }
 
   return (
@@ -90,7 +172,7 @@ export default function AnnouncementPage() {
           {/* Left column with image */}
           <div>
             <Image
-              src={anuncio.imageUrl}
+              src={anuncio.imageUrl ?? '/default-image.jpg'} // Provide a fallback image
               alt={anuncio.title}
               className="w-full h-auto rounded-lg shadow-md"
               width={500}
@@ -134,7 +216,7 @@ export default function AnnouncementPage() {
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
                   <div>
-                    <h3 className="font-semibold">Publicado por FIND</h3>
+                    <h3 className="font-semibold">Publicado por {anuncio.publisher}</h3>
                     <p className="text-sm text-gray-500">Organização</p>
                   </div>
                 </div>
@@ -155,7 +237,7 @@ export default function AnnouncementPage() {
             {showContact && (
               <div className="mt-4 p-4 bg-gray-100 rounded-md shadow-md">
                 <h3 className="text-lg font-semibold">Contato:</h3>
-                <p className="text-gray-700">{anuncio.contact}</p>
+                <p className="text-gray-700">{anuncio.contact ?? anuncio.contact_email ?? 'Não disponível'}</p>
               </div>
             )}
 
@@ -166,7 +248,10 @@ export default function AnnouncementPage() {
             </div>
 
             {/* Goals section */}
-            {goals.length > 0 && (
+            {goalsLoading && <p>Carregando objetivos...</p>}
+            {goalsError && <p>Erro ao carregar objetivos: {goalsError}</p>}
+            {!goalsLoading && !goalsError && goals.length === 0 && <p>Este anúncio ainda não tem objetivos definidos.</p>}
+            {!goalsLoading && !goalsError && goals.length > 0 && (
               <div className="mt-6">
                 <h3 className="text-xl font-semibold mb-4">Objetivos</h3>
 

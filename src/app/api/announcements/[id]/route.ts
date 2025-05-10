@@ -12,27 +12,28 @@ export async function GET(
     const supabase = await createClient(cookieStore);
 
     const { data, error } = await supabase
-      .from('announcements')
+      .from('advertisements') // Changed from 'announcements'
       .select(`
         *,
         user:user_id (
-          email
+          email,
+          phone_number // Added phone_number for contact info
         )
       `)
       .eq('id', resolvedParams.id)
       .single();
 
     if (error) {
-      console.error('Error fetching announcement:', error);
+      console.error('Error fetching advertisement:', error);
       return NextResponse.json(
-        { error: 'Error fetching announcement' },
+        { error: 'Error fetching advertisement' }, // Changed from 'Error fetching announcement'
         { status: 500 }
       );
     }
 
     if (!data) {
       return NextResponse.json(
-        { error: 'Announcement not found' },
+        { error: 'Advertisement not found' }, // Changed from 'Announcement not found'
         { status: 404 }
       );
     }
