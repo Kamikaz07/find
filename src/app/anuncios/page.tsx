@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
@@ -38,7 +40,14 @@ const anuncios: Anuncio[] = [
   },
 ];
 
-const AnunciosPage: React.FC = () => {
+const AnunciosPage = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Search functionality here
+  };
+
   return (
     <div className="min-h-screen bg-[#E0F4F4] flex flex-col">
       <Header />
@@ -48,11 +57,9 @@ const AnunciosPage: React.FC = () => {
             <input
               type="text"
               placeholder="Buscar anúncios..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-10 pr-10 h-12 bg-white rounded-lg w-full border focus:border-blue-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-10 h-12 bg-white rounded-lg w-full border focus:border-blue-500"
             />
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
               <svg
@@ -65,7 +72,7 @@ const AnunciosPage: React.FC = () => {
                 <path d="M21 21l-4.35-4.35M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"></path>
               </svg>
             </div>
-          </div>
+          </form>
 
           <Link href="/anunciar">
             <span className="bg-[#40B3B3] hover:bg-[#329999] text-white font-semibold py-2 px-4 rounded text-sm transition-colors whitespace-nowrap">
@@ -110,4 +117,4 @@ const AnunciosPage: React.FC = () => {
   );
 };
 
-export default AnnouncementsPage;
+export default AnunciosPage;

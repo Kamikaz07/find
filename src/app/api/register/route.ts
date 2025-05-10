@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
+import bcrypt from 'bcrypt';
 
 // Password validation regex
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{9,}$/;
@@ -71,6 +72,12 @@ export async function POST(request: NextRequest) {
           { status: 409 }
         );
       }
+      
+      return NextResponse.json(
+        { error: authError.message || 'Erro ao registar' },
+        { status: 500 }
+      );
+    }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -82,6 +89,7 @@ export async function POST(request: NextRequest) {
         {
           email,
           password: hashedPassword,
+          phone: phone || null,
           receive_updates: !!receiveUpdates
         }
       ])
@@ -92,7 +100,7 @@ export async function POST(request: NextRequest) {
       throw insertError;
     }
 
-    console.log('User created successfully:', authData.user.id);
+    console.log('User created successfully:', authData.user?.id);
 
     return NextResponse.json({
       success: true,

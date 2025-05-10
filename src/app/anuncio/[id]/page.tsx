@@ -2,11 +2,9 @@
 
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { createClient } from '@/utils/supabase/client';
 import { Header } from "../../../components/Header";
 import { Footer } from "../../../components/Footer";
 import Image from "next/image";
-import { useSession } from "next-auth/react";
 import Swal from 'sweetalert2';
 
 type Anuncio = {
@@ -51,6 +49,8 @@ export default function AnnouncementPage() {
   const router = useRouter();
   const { id } = useParams();
   const [showContact, setShowContact] = useState(false);
+  const [donationAmount, setDonationAmount] = useState("");
+  const [goals, setGoals] = useState<any[]>([]);
 
   const anuncio = anuncios.find((anuncio) => anuncio.id === Number(id));
 
@@ -66,6 +66,11 @@ export default function AnnouncementPage() {
     router.push(
       `/pagamento?title=${encodeURIComponent(anuncio.title)}&imageUrl=${encodeURIComponent(anuncio.imageUrl)}`
     );
+  }
+
+  const handleDonation = (goalId: string) => {
+    // Donation handling logic
+    console.log(`Donating ${donationAmount} to goal ${goalId}`);
   }
 
   return (
@@ -88,9 +93,9 @@ export default function AnnouncementPage() {
           {/* Right column with details */}
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold">{announcement.title}</h2>
+              <h2 className="text-3xl font-bold">{anuncio.title}</h2>
               <p className="text-2xl font-semibold text-teal-700 mt-2">
-                {announcement.location}
+                {anuncio.location}
               </p>
             </div>
             <div className="flex items-center space-x-2 text-gray-600">
@@ -104,7 +109,7 @@ export default function AnnouncementPage() {
               >
                 <path d="M21 10.45a8.38 8.38 0 0 1-1.69 5.72L12 21 4.69 16.17A8.5 8.5 0 1 1 21 10.45z"></path>
               </svg>
-              <span>{announcement.location}</span>
+              <span>{anuncio.location}</span>
             </div>
             <Card>
               <CardContent>
@@ -125,8 +130,8 @@ export default function AnnouncementPage() {
                     <p className="text-sm text-gray-500">Organização</p>
                   </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Botões lado a lado */}
             <div className="flex space-x-4">
@@ -135,7 +140,7 @@ export default function AnnouncementPage() {
               </Button>
               <Button onClick={handlePromote}>
                 Promover
-              </button>
+              </Button>
             </div>
 
             {/* Exibir contato se o botão for clicado */}
@@ -149,7 +154,7 @@ export default function AnnouncementPage() {
             {/* Description */}
             <div>
               <h3 className="text-xl font-semibold mb-2">Descrição</h3>
-              <p className="text-gray-700">{announcement.description}</p>
+              <p className="text-gray-700">{anuncio.description}</p>
             </div>
 
             {/* Goals section */}

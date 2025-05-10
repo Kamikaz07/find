@@ -5,6 +5,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import bcrypt from "bcrypt";
+import { getServerSession } from "next-auth/next";
 
 export const auth = NextAuth({
   providers: [
@@ -54,3 +55,8 @@ export const auth = NextAuth({
     signIn: '/login',
   },
 });
+
+// Add the missing getAuthSession function that's imported in multiple API routes
+export async function getAuthSession() {
+  return await getServerSession(auth);
+}
