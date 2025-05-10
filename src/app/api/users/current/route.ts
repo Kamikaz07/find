@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { getAuthSession } from '@/lib/auth';
+import { AuthSession } from '@supabase/supabase-js';
 
 // GET: Fetch current user's data
 export async function GET() {
   try {
-    // Get authenticated user
-    const session = await getAuthSession();
+    // Get authenticated use
+    const session = await getAuthSession() as AuthSession;
 
     if (!session?.user) {
       return NextResponse.json(
@@ -48,7 +49,7 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     // Get authenticated user
-    const session = await getAuthSession();
+    const session = await getAuthSession() as AuthSession;
 
     if (!session?.user) {
       return NextResponse.json(
@@ -57,7 +58,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const { name, phone } = await request.json();
+    const { phone } = await request.json();
 
     const cookieStore = cookies();
     const supabase = await createClient(cookieStore);

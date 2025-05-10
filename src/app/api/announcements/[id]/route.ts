@@ -4,9 +4,10 @@ import { cookies } from 'next/headers';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await context.params;
     const cookieStore = cookies();
     const supabase = await createClient(cookieStore);
 
@@ -18,7 +19,7 @@ export async function GET(
           email
         )
       `)
-      .eq('id', params.id)
+      .eq('id', resolvedParams.id)
       .single();
 
     if (error) {
@@ -44,4 +45,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}

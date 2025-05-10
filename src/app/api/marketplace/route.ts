@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 // POST /api/marketplace - Create a new marketplace item
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(auth);
+    const session: { user?: { id: string } } | null = await getServerSession(auth);
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Não autorizado' },

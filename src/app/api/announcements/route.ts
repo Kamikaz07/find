@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
-import { getServerSession } from 'next-auth';
-import { auth } from '@/lib/auth';
-import type { Session } from 'next-auth';
 
 // GET /api/announcements - Get all announcements with optional filters
 export async function GET(request: NextRequest) {

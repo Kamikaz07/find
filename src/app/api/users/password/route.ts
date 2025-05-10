@@ -3,12 +3,13 @@ import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { getAuthSession } from '@/lib/auth';
 import bcrypt from 'bcrypt';
+import { AuthSession } from '@supabase/supabase-js';
 
 // PUT: Change user's password
 export async function PUT(request: NextRequest) {
   try {
     // Get authenticated user
-    const session = await getAuthSession();
+    const session = await getAuthSession() as AuthSession;
 
     if (!session?.user) {
       return NextResponse.json(

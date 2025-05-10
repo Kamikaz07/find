@@ -23,6 +23,7 @@ export default function CreateMercadoItemPage() {
         .insert([{ title, description, price: parseFloat(price), image_url: imageUrl || null }]);
       if (err) throw new Error(err.message);
       router.push('/mercado');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message);
     }

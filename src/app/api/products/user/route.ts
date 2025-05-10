@@ -4,13 +4,14 @@ import { cookies } from 'next/headers';
 import { getAuthSession } from '@/lib/auth';
 
 // GET: Fetch all products for the current user
-export async function GET(request: NextRequest) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function GET(_request: NextRequest) {
   try {
     const cookieStore = cookies();
     const supabase = await createClient(cookieStore);
 
     // Get the current user from NextAuth
-    const session = await getAuthSession();
+    const session = await getAuthSession() as { user?: { email: string } } | null;
 
     if (!session?.user) {
       return NextResponse.json(

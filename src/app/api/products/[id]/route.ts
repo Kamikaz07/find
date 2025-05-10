@@ -5,10 +5,11 @@ import { cookies } from 'next/headers';
 // GET: Fetch a single product by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> } // Changed to Promise
 ) {
   try {
-    const { id } = params;
+    const resolvedParams = await context.params; // Added await
+    const { id } = resolvedParams; // Use resolved id
     
     if (!id) {
       return NextResponse.json(
@@ -44,8 +45,8 @@ export async function GET(
     // Include the phone number in the product response
     const productWithContact = {
       ...data,
-      contact: data.users?.phone || null,
-      contact_email: data.users?.email || null,
+      contact: data.users?.phone ?? null, // Changed || to ??
+      contact_email: data.users?.email ?? null, // Changed || to ??
       // Remove nested users object from response
       users: undefined
     };

@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { getAuthSession } from '@/lib/auth';
+import { AuthSession } from '@supabase/supabase-js';
 
 // GET: Fetch user's messages conversations
 export async function GET(request: NextRequest) {
   try {
     // Get authenticated user
-    const session = await getAuthSession();
+    const session = await getAuthSession() as { user?: { email: string } };
 
     if (!session?.user) {
       return NextResponse.json(
@@ -165,7 +166,7 @@ export async function GET(request: NextRequest) {
 
       if (!latestError && latestMessage) {
         // Count unread messages
-        const { count: unreadCount, error: countError } = await supabase
+        const { count: unreadCount } = await supabase
           .from('chat_messages')
           .select('*', { count: 'exact', head: true })
           .eq('sender_id', contactId)
@@ -200,7 +201,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Get authenticated user
-    const session = await getAuthSession();
+    const session = await getAuthSession() as AuthSession;
 
     if (!session?.user) {
       return NextResponse.json(

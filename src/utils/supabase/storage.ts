@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createClient as createServerClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';

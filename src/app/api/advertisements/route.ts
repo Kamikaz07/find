@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient(cookieStore);
 
     // Get the current user from NextAuth
-    const session = await getAuthSession();
+    const session = await getAuthSession() as { user?: { email: string } };
 
     if (!session?.user) {
       return NextResponse.json(

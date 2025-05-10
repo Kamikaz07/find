@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
-import { getAuthSession } from '@/lib/auth';
+import { getAuthSession} from '@/lib/auth';
+import { AuthSession } from '@supabase/supabase-js';
 
 // GET: Fetch all advertisements for the current user
 export async function GET() {
@@ -10,7 +11,7 @@ export async function GET() {
     const supabase = await createClient(cookieStore);
 
     // Get the current user from NextAuth
-    const session = await getAuthSession();
+    const session: AuthSession = await getAuthSession() as AuthSession;
 
     if (!session?.user) {
       return NextResponse.json(

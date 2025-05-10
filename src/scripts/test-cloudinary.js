@@ -1,4 +1,5 @@
-const { v2: cloudinary } = require('cloudinary');
+/* eslint-disable @typescript-eslint/no-require-imports */
+import { v2 as cloudinary } from 'cloudinary';
 require('dotenv').config({ path: '.env.local' });
 
 // Configure Cloudinary with credentials from .env.local

@@ -32,6 +32,7 @@ export async function uploadImage(
     const dataURI = `data:image/jpeg;base64,${base64Data}`;
 
     // Upload to Cloudinary
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await new Promise<any>((resolve, reject) => {
       cloudinary.uploader.upload(
         dataURI,

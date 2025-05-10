@@ -6,12 +6,11 @@ import { getAuthSession } from '@/lib/auth';
 // GET: Fetch a single advertisement by ID
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> } // Changed to Promise
 ) {
   try {
-    // Get the ID directly from context.params
-    // This avoids direct destructuring of params which causes the warning
-    const id = context.params.id;
+    const resolvedParams = await context.params; // Added await
+    const id = resolvedParams.id; // Use resolved id
     
     if (!id) {
       return NextResponse.json(
@@ -47,8 +46,8 @@ export async function GET(
     // Include the phone number in the advertisement response
     const advertisementWithContact = {
       ...data,
-      contact: data.users?.phone || null,
-      contact_email: data.users?.email || null,
+      contact: data.users?.phone ?? null, // Changed || to ??
+      contact_email: data.users?.email ?? null, // Changed || to ??
       // Remove nested users object from response
       users: undefined
     };
@@ -66,10 +65,11 @@ export async function GET(
 // PUT: Update an advertisement by ID
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> } // Changed to Promise
 ) {
   try {
-    const id = context.params.id;
+    const resolvedParams = await context.params; // Added await
+    const id = resolvedParams.id; // Use resolved id
     const { title, description, location, publisher, image_url } = await request.json();
     
     if (!id) {
@@ -93,18 +93,30 @@ export async function PUT(
     // Get the current user to verify ownership
     const session = await getAuthSession();
 
-    if (!session?.user) {
+    // Check if session is valid and contains user with a string email
+    if (
+      !session ||
+      typeof session !== 'object' ||
+      !('user' in session) ||
+      !session.user ||
+      typeof session.user !== 'object' ||
+      !('email' in session.user) ||
+      typeof (session.user as { email?: unknown }).email !== 'string'
+    ) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: 'Authentication required or user email is missing/invalid' },
         { status: 401 }
       );
     }
+
+    // Now TypeScript knows session.user.email is a string
+    const userEmail = (session.user as { email: string }).email;
 
     // Get user from database to get the ID
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('id')
-      .eq('email', session.user.email)
+      .eq('email', userEmail)
       .single();
 
     if (userError || !userData) {
@@ -176,10 +188,11 @@ export async function PUT(
 // DELETE: Remove an advertisement by ID
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> } // Changed to Promise
 ) {
   try {
-    const id = context.params.id;
+    const resolvedParams = await context.params; // Added await
+    const id = resolvedParams.id; // Use resolved id
     
     if (!id) {
       return NextResponse.json(
@@ -194,18 +207,30 @@ export async function DELETE(
     // Get the current user to verify ownership
     const session = await getAuthSession();
 
-    if (!session?.user) {
+    // Check if session is valid and contains user with a string email
+    if (
+      !session ||
+      typeof session !== 'object' ||
+      !('user' in session) ||
+      !session.user ||
+      typeof session.user !== 'object' ||
+      !('email' in session.user) ||
+      typeof (session.user as { email?: unknown }).email !== 'string'
+    ) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: 'Authentication required or user email is missing/invalid' },
         { status: 401 }
       );
     }
+
+    // Now TypeScript knows session.user.email is a string
+    const userEmail = (session.user as { email: string }).email;
 
     // Get user from database to get the ID
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('id')
-      .eq('email', session.user.email)
+      .eq('email', userEmail)
       .single();
 
     if (userError || !userData) {

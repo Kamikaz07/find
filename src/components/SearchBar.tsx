@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 interface SearchBarProps {
   types: string[];
@@ -9,7 +9,6 @@ interface SearchBarProps {
 }
 
 export function SearchBar({ types, onSearch }: SearchBarProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [type, setType] = useState(searchParams.get('type') || '');
   const [location, setLocation] = useState(searchParams.get('location') || '');

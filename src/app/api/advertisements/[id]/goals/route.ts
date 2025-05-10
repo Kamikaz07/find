@@ -2,14 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { getAuthSession } from '@/lib/auth';
+import { AuthSession } from '@supabase/supabase-js';
 
 // GET: Fetch goals for a specific advertisement
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  context: { params: any } // Workaround for Next.js 15.2.3 type issue
 ) {
   try {
-    const { id } = params;
+    const id = context.params.id as string; // Cast id back to string
     
     if (!id) {
       return NextResponse.json(
@@ -47,10 +49,11 @@ export async function GET(
 // POST: Create a new goal for an advertisement
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  context: { params: any } // Workaround for Next.js 15.2.3 type issue
 ) {
   try {
-    const { id } = params;
+    const id = context.params.id as string; // Cast id back to string
     const { goal_type, target_amount } = await request.json();
 
     // Validate inputs
@@ -74,11 +77,19 @@ export async function POST(
     const supabase = await createClient(cookieStore);
 
     // Get the current user from NextAuth
-    const session = await getAuthSession();
+    const session = await getAuthSession() as AuthSession;
 
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    // Add check for session.user.email
+    if (!session.user.email) {
+      return NextResponse.json(
+        { error: 'User email not found in session' },
         { status: 401 }
       );
     }
@@ -155,10 +166,11 @@ export async function POST(
 // PATCH: Update the current amount of a goal
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  context: { params: any } // Workaround for Next.js 15.2.3 type issue
 ) {
   try {
-    const { id } = params;
+    const id = context.params.id as string; // Cast id back to string
     const { goal_id, amount } = await request.json();
 
     // Validate inputs

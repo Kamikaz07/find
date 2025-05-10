@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Header } from "../../../components/Header";
 import { Footer } from "../../../components/Footer";
 import Image from "next/image";
-import Swal from 'sweetalert2';
+// Removed unused Swal import
 
 type Anuncio = {
   id: number;
@@ -50,7 +50,15 @@ export default function AnnouncementPage() {
   const { id } = useParams();
   const [showContact, setShowContact] = useState(false);
   const [donationAmount, setDonationAmount] = useState("");
-  const [goals, setGoals] = useState<any[]>([]);
+  // Fixed the 'any' type with a proper interface
+  interface Goal {
+    id: string;
+    goal_type: 'donation' | 'delivery';
+    current_amount: number;
+    target_amount: number;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [goals, _setGoals] = useState<Goal[]>([]);
 
   const anuncio = anuncios.find((anuncio) => anuncio.id === Number(id));
 

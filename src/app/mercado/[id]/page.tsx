@@ -35,13 +35,13 @@ export default function MercadoItemPage() {
 
         if (error) throw new Error(error.message);
         setItem(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
       } finally {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, supabase]);
 
   if (loading) return <div className="text-center">Loading...</div>;
   if (error) return <div className="text-center text-red-600">{error}</div>;

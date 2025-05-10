@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { getAuthSession } from '@/lib/auth';
+import { AuthSession } from '@supabase/supabase-js';
 
 // GET: Fetch all public products
 export async function GET(request: NextRequest) {
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient(cookieStore);
 
     // Get the current user from NextAuth
-    const session = await getAuthSession();
+    const session: AuthSession | null = await getAuthSession() as AuthSession | null;
 
     if (!session?.user) {
       return NextResponse.json(
