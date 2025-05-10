@@ -44,6 +44,9 @@ export const Header: React.FC = () => {
                   <p className="font-bold mb-2">{userName}</p>
                   </a>
                   <ul className="space-y-1 text-sm">
+                    <li><Link href="/anuncios" className="block hover:text-[#40B3B3]">Meus Anúncios</Link></li>
+                    <li><Link href="/contacto" className="block hover:text-[#40B3B3]">Contactos</Link></li>
+                    <li><Link href="/dados" className="block hover:text-[#40B3B3]">Perfil</Link></li>
                     <hr className="my-2" />
                     <li>
                       <button

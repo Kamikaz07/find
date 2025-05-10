@@ -1079,103 +1079,22 @@ const ContaPage = () => {
 
           {/* Perfil tab */}
           {abaAtiva === "perfil" && (
-            <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-              <h2 className="text-xl font-semibold text-teal-800 mb-4">Informações da Conta</h2>
-              
-              <form onSubmit={handleProfileUpdate} className="space-y-4">
-                <div>
-                  <label htmlFor="email" className="block text-sm font-semibold text-teal-700 mb-1">Email</label>
-                  <input 
-                    type="email" 
-                    id="email"
-                    value={user.email}
-                    disabled
-                    className="w-full px-4 py-2 bg-gray-100 rounded-md" 
-                  />
-                  <p className="text-xs text-gray-500 mt-1">O email não pode ser alterado.</p>
-                </div>
-                
-                <div>
-                  <label htmlFor="nome" className="block text-sm font-semibold text-teal-700 mb-1">Nome</label>
-                  <input 
-                    type="text" 
-                    id="nome" 
-                    value={editableUser.nome}
-                    onChange={(e) => setEditableUser({...editableUser, nome: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500" 
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-semibold text-teal-700 mb-1">Telemóvel</label>
-                  <input 
-                    type="tel" 
-                    id="phone" 
-                    value={editableUser.phone}
-                    onChange={(e) => setEditableUser({...editableUser, phone: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500" 
-                  />
-                </div>
-                
-                <button 
-                  type="submit" 
-                  className="bg-teal-600 text-white px-6 py-2 rounded-md shadow hover:bg-teal-700 transition disabled:opacity-70"
-                  disabled={isSaving}
-                >
-                  {isSaving ? 'A guardar...' : 'Guardar Alterações'}
-                </button>
-              </form>
-              
-              <hr className="my-6 border-gray-200" />
-              
-              <h2 className="text-xl font-semibold text-teal-800 mb-4">Alterar Password</h2>
-              
-              <form onSubmit={handlePasswordChange} className="space-y-4">
-                <div>
-                  <label htmlFor="currentPassword" className="block text-sm font-semibold text-teal-700 mb-1">Password Atual</label>
-                  <input 
-                    type="password" 
-                    id="currentPassword" 
-                    value={passwords.currentPassword}
-                    onChange={(e) => setPasswords({...passwords, currentPassword: e.target.value})}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500" 
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="newPassword" className="block text-sm font-semibold text-teal-700 mb-1">Nova Password</label>
-                  <input 
-                    type="password" 
-                    id="newPassword" 
-                    value={passwords.newPassword}
-                    onChange={(e) => setPasswords({...passwords, newPassword: e.target.value})}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500" 
-                  />
-                  <p className="text-xs text-gray-500 mt-1">A password deve ter pelo menos 9 caracteres, incluindo letras maiúsculas, minúsculas e números.</p>
-                </div>
-                
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-semibold text-teal-700 mb-1">Confirmar Nova Password</label>
-                  <input 
-                    type="password" 
-                    id="confirmPassword" 
-                    value={passwords.confirmPassword}
-                    onChange={(e) => setPasswords({...passwords, confirmPassword: e.target.value})}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500" 
-                  />
-                </div>
-                
-                <button 
-                  type="submit" 
-                  className="bg-teal-600 text-white px-6 py-2 rounded-md shadow hover:bg-teal-700 transition disabled:opacity-70"
-                  disabled={isSaving}
-                >
-                  {isSaving ? 'A processar...' : 'Alterar Password'}
-                </button>
-              </form>
+            <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
+              <div>
+                <label className="text-sm font-semibold text-teal-700">Nome</label>
+                <div className="mt-1 px-4 py-2 bg-gray-100 rounded-md">{user.nome}</div>
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-teal-700">Email</label>
+                <div className="mt-1 px-4 py-2 bg-gray-100 rounded-md">{user.email}</div>
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-teal-700">Telemóvel</label>
+                <div className="mt-1 px-4 py-2 bg-gray-100 rounded-md">{user.telemovel}</div>
+              </div>
+              <button className="mt-4 bg-teal-600 text-white px-4 py-2 rounded-md shadow hover:bg-teal-700 transition">
+                Editar Dados (placeholder)
+              </button>
             </div>
           )}
         </main>
